@@ -2,38 +2,40 @@
 <html>
 <head>
     <title>Culebra Map</title>
-    <!-- 1. THE BRAIN: These links load the map software -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- 1. The Map's Brain (Leaflet Library) -->
+    <link rel="stylesheet" href="https://unpkg.com" />
     <script src="https://unpkg.com"></script>
-
     <style>
-        /* 2. THE SIZE: This makes the map visible */
-        #map { height: 600px; width: 100%; background: #eee; }
-        body { font-family: sans-serif; margin: 20px; }
+        /* 2. The Map's Size - This makes it visible! */
+        #map { height: 100vh; width: 100%; margin: 0; padding: 0; }
+        body { margin: 0; }
     </style>
 </head>
 <body>
-    <h1>Culebra Locations</h1>
     <div id="map"></div>
 
     <script>
-        // 3. THE SETUP: Centers the map on Culebra
+        // 3. Setup the Map - Centered on Culebra
         var map = L.map('map').setView([18.31, -65.30], 13);
 
-        // 4. THE TILES: Loads the actual map images
+        // 4. Load the Map Images
         L.tileLayer('https://tile.openstreetmap.org{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
-        // 5. THE DATA: Your specific locations
+        // 5. Your Location Data
         var locations = [
-            { name: "Todo Culebra Plaza Hub", lat: 18.3012, lng: -65.30213, desc: "ORDER HERE: <a href='https://www.shopculebra.com' target='_blank'>www.shopculebra.com</a>" },
-            { name: "Zaco's Tacos Restaurant", lat: 18.300, lng: -65.2955823, desc: "ORDER HERE: <a href='https://www.zacostacos.com' target='_blank'>Zacos Tacos</a>" },
-            { name: "Playa Flamenco", lat: 18.3280301, lng: -65.3358813, desc: "Snorkel with Locals" },
-            { name: "Playa Zoni", lat: 18.3197313, lng: -65.2757021, desc: "Culebra Camping" }
+            { "name": "Todo Culebra Plaza Hub", "lat": 18.3012, "lng": -65.30213, "desc": "ORDER HERE: <a href='https://www.shopculebra.com' target='_blank'>www.shopculebra.com</a>" },
+            { "name": "Zaco's Tacos Restaurant", "lat": 18.300, "lng": -65.2955823, "desc": "ORDER HERE: <a href='https://www.zacostacos.com' target='_blank'>Zacos Tacos</a>" },
+            { "name": "Kokomo Hotel", "lat": 18.29, "lng": -65.30213, "desc": "www.shopculebra.com" },
+            { "name": "Playa Flamenco", "lat": 18.3280301, "lng": -65.3358813, "desc": "Snorkel with Locals" },
+            { "name": "Tamarindo Beach", "lat": 18.3179129, "lng": -65.3912512, "desc": "Snorkel with Locals" },
+            { "name": "Malones Beach", "lat": 18.3031684, "lng": -65.3128741, "desc": "Snorkel with Locals" },
+            { "name": "Playa Dátiles", "lat": 18.2961511, "lng": -65.3032101, "desc": "Snorkel with Locals" },
+            { "name": "Playa Zoni", "lat": 18.3197313, "lng": -65.2757021, "desc": "Culebra Camping" }
         ];
 
-        // 6. THE PINS: Put them on the map
+        // 6. Put the Pins on the Map
         locations.forEach(function(place) {
             L.marker([place.lat, place.lng])
                 .addTo(map)
