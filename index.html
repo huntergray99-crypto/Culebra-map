@@ -1,45 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Culebra Map</title>
-    <!-- 1. The Map's Brain (Leaflet Library) -->
-    <link rel="stylesheet" href="https://unpkg.com" />
-    <script src="https://unpkg.com"></script>
+    
+    <!-- 1. THE BRAIN: These must be in the <head> to load the map software -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
     <style>
-        /* 2. The Map's Size - This makes it visible! */
-        #map { height: 100vh; width: 100%; margin: 0; padding: 0; }
-        body { margin: 0; }
+        /* 2. THE BOX: This forces the map to actually be visible */
+        #map { height: 100vh; width: 100%; background: #ddd; }
+        body { margin: 0; padding: 0; }
     </style>
 </head>
 <body>
+
+    <!-- 3. THE CONTAINER: This is where the map will sit -->
     <div id="map"></div>
 
     <script>
-        // 3. Setup the Map - Centered on Culebra
-        var map = L.map('map').setView([18.31, -65.30], 13);
+        // 4. THE LOGIC: This script runs the map
+        document.addEventListener('DOMContentLoaded', function() {
+            // Setup the map view centered on Culebra
+            var map = L.map('map').setView([18.31, -65.30], 13);
 
-        // 4. Load the Map Images
-        L.tileLayer('https://tile.openstreetmap.org{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap'
-        }).addTo(map);
+            // Load the actual map tiles from OpenStreetMap (HTTPS)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap'
+            }).addTo(map);
 
-        // 5. Your Location Data
-        var locations = [
-            { "name": "Todo Culebra Plaza Hub", "lat": 18.3012, "lng": -65.30213, "desc": "ORDER HERE: <a href='https://www.shopculebra.com' target='_blank'>www.shopculebra.com</a>" },
-            { "name": "Zaco's Tacos Restaurant", "lat": 18.300, "lng": -65.2955823, "desc": "ORDER HERE: <a href='https://www.zacostacos.com' target='_blank'>Zacos Tacos</a>" },
-            { "name": "Kokomo Hotel", "lat": 18.29, "lng": -65.30213, "desc": "www.shopculebra.com" },
-            { "name": "Playa Flamenco", "lat": 18.3280301, "lng": -65.3358813, "desc": "Snorkel with Locals" },
-            { "name": "Tamarindo Beach", "lat": 18.3179129, "lng": -65.3912512, "desc": "Snorkel with Locals" },
-            { "name": "Malones Beach", "lat": 18.3031684, "lng": -65.3128741, "desc": "Snorkel with Locals" },
-            { "name": "Playa Dátiles", "lat": 18.2961511, "lng": -65.3032101, "desc": "Snorkel with Locals" },
-            { "name": "Playa Zoni", "lat": 18.3197313, "lng": -65.2757021, "desc": "Culebra Camping" }
-        ];
+            // Your Locations
+            var locations = [
+                { name: "Todo Culebra Plaza Hub", lat: 18.3012, lng: -65.30213, desc: "www.shopculebra.com" },
+                { name: "Zaco's Tacos", lat: 18.300, lng: -65.29558, desc: "Zacos Tacos" },
+                { name: "Playa Flamenco", lat: 18.3280, lng: -65.3358, desc: "Snorkel with Locals" },
+                { name: "Playa Zoni", lat: 18.3197, lng: -65.2757, desc: "Culebra Camping" }
+            ];
 
-        // 6. Put the Pins on the Map
-        locations.forEach(function(place) {
-            L.marker([place.lat, place.lng])
-                .addTo(map)
-                .bindPopup("<b>" + place.name + "</b><br>" + place.desc);
+            // Add the Pins to the map
+            locations.forEach(function(p) {
+                L.marker([p.lat, p.lg || p.lng]).addTo(map)
+                    .bindPopup("<b>" + p.name + "</b><br>" + (p.desc || ""));
+            });
+            
+            // Final nudge for Safari
+            setTimeout(function(){ map.invalidateSize(); }, 500);
         });
     </script>
 </body>
