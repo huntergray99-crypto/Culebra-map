@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Culebra Map - Final Fix</title>
+    <title>Culebra Map - Verified Fix</title>
     
-    <!-- 1. Use HTTPS and full paths for Leaflet (Required for GitHub Pages) -->
+    <!-- MANDATORY: You must include the FULL folder paths below -->
     <link rel="stylesheet" href="https://unpkg.com" />
-    <script src="https://unpkg.com"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
-        /* 2. Map MUST have a height. 100vh makes it fill the screen. */
-        html, body, #map { 
-            height: 100vh; 
-            width: 100vw; 
-            margin: 0; 
-            padding: 0; 
+        /* CSS FIX: Map must have a fixed height or it will be 0px (grey) */
+        html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; }
+        #map { 
+            height: 100vh !important; 
+            width: 100vw !important; 
+            background: #cbd5e0; 
         }
-        /* Fix for GitHub themes that might squash map tiles */
+        /* Prevents GitHub themes from accidentally shrinking map tiles */
         .leaflet-container img { max-width: none !important; }
     </style>
 </head>
@@ -26,31 +26,35 @@
     <div id="map"></div>
 
     <script>
-        // 3. Initialize map (L only works after script above loads)
-        var map = L.map('map').setView([18.31, -65.30], 13);
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize map - points to Culebra, PR
+            var map = L.map('map').setView([18.31, -65.30], 13);
 
-        // 4. Use preferred HTTPS Tile URL (No subdomains required anymore)
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        }).addTo(map);
+            // THE TILE FIX: Must use 'https' to avoid blocking on GitHub Pages
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
 
-        // 5. Your Pins
-        var locations = [
-            { n: "Todo Culebra Plaza Hub", lt: 18.3012, lg: -65.30213 },
-            { n: "Zaco's Tacos", lt: 18.300, lg: -65.29558 },
-            { n: "Playa Flamenco", lt: 18.3280, lg: -65.3358 },
-            { n: "Playa Zoni", lt: 18.3197, lg: -65.2757 }
-        ];
+            // Your Pins
+            var locations = [
+                { n: "Todo Culebra Plaza Hub", lt: 18.3012, lg: -65.30213 },
+                { n: "Zaco's Tacos", lt: 18.300, lg: -65.29558 },
+                { n: "Playa Flamenco", lt: 18.3280, lg: -65.3358 },
+                { n: "Playa Zoni", lt: 18.3197, lg: -65.2757 }
+            ];
 
-        locations.forEach(function(p) {
-            L.marker([p.lt, p.lg]).addTo(map).bindPopup(p.n);
+            // Add markers
+            locations.forEach(function(p) {
+                L.marker([p.lt, p.lg]).addTo(map).bindPopup(p.n);
+            });
+
+            // CRITICAL RENDER FIX: Forces the map to "wake up" after the page settles
+            setTimeout(function() {
+                map.invalidateSize();
+                window.dispatchEvent(new Event('resize')); 
+            }, 600);
         });
-
-        // 6. Force a redraw to fix common grey screen bug on load
-        setTimeout(function() {
-            map.invalidateSize();
-        }, 500);
     </script>
 </body>
 </html>
