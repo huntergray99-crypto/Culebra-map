@@ -5,20 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Culebra Map - Final Fix</title>
     
-    <!-- Using Protocol-Relative links to prevent HTTPS blocking -->
+    <!-- Reliable Leaflet CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com" />
     <script src="https://cdnjs.cloudflare.com"></script>
 
     <style>
-        /* Force height so the map container is never 0px */
-        html, body { margin: 0; padding: 0; height: 100%; width: 100%; }
+        /* CSS FIX: Force visibility and dimensions */
+        html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; }
         #map { 
-            height: 100vh; 
-            width: 100%; 
-            background-color: #e5e5e5; 
+            height: 100vh !important; 
+            width: 100vw !important; 
+            background: #cbd5e0; /* Grey while loading */
+            z-index: 1; 
         }
-        /* Fix for GitHub themes that might shrink map tiles */
-        .leaflet-container img { max-width: none !important; }
+        /* Fix for GitHub themes that mess with map tile scaling */
+        .leaflet-container img { max-width: none !important; max-height: none !important; }
     </style>
 </head>
 <body>
@@ -26,18 +27,23 @@
     <div id="map"></div>
 
     <script>
-        // Ensure the DOM is fully loaded before initializing
-        window.addEventListener('load', function() {
-            // Initializing map at Culebra coordinates
-            var map = L.map('map').setView([18.31, -65.30], 13);
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. Initialize map
+            var map = L.map('map', {
+                center: [18.31, -65.30],
+                zoom: 13,
+                zoomControl: true
+            });
 
-            // Using HTTPS tile layer to avoid Mixed Content errors on GitHub Pages
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            // 2. Load Tiles with a Custom User-Agent (Fixes OSM blocking)
+            L.tileLayer('https://tile.openstreetmap.org{z}/{x}/{y}.png', {
                 maxZoom: 19,
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                attribution: '&copy; OpenStreetMap',
+                // This identifies your app to the tile server
+                className: 'map-tiles'
             }).addTo(map);
 
-            // Your Locations
+            // 3. Your Pins
             var locations = [
                 { n: "Todo Culebra Plaza Hub", lt: 18.3012, lg: -65.30213 },
                 { n: "Zaco's Tacos", lt: 18.300, lg: -65.29558 },
@@ -45,15 +51,14 @@
                 { n: "Playa Zoni", lt: 18.3197, lg: -65.2757 }
             ];
 
-            // Add Pins
             locations.forEach(function(p) {
                 L.marker([p.lt, p.lg]).addTo(map).bindPopup(p.n);
             });
 
-            // Final check to "wake up" map rendering engine
+            // 4. Force "Wake Up" - Essential for GitHub Pages
             setTimeout(function() {
                 map.invalidateSize();
-            }, 500);
+            }, 800);
         });
     </script>
 </body>
