@@ -27,9 +27,10 @@
             var map = L.map('map').setView([18.31, -65.30], 13);
 
             // Load the actual map tiles from OpenStreetMap (HTTPS)
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap'
-            }).addTo(map);
+           L.tileLayer('https://{s}://{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap &copy; CARTO'
+}).addTo(map);
+
 
             // Your Locations
             var locations = [
