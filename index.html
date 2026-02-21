@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Culebra Map - Fixed</title>
+    <title>Culebra Map - Final Fix</title>
     
-    <!-- Using Cloudflare CDN for maximum reliability on GitHub Pages -->
+    <!-- Using Protocol-Relative links to prevent HTTPS blocking -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com" />
     <script src="https://cdnjs.cloudflare.com"></script>
 
     <style>
-        /* CSS FIX: Explicitly set height and ensure no image conflicts */
-        body, html { margin: 0; padding: 0; height: 100%; width: 100%; }
+        /* Force height so the map container is never 0px */
+        html, body { margin: 0; padding: 0; height: 100%; width: 100%; }
         #map { 
             height: 100vh; 
             width: 100%; 
-            background: #cbd5e0; /* Grey placeholder while loading */
+            background-color: #e5e5e5; 
         }
-        /* Prevents GitHub/Theme CSS from breaking map tiles */
+        /* Fix for GitHub themes that might shrink map tiles */
         .leaflet-container img { max-width: none !important; }
     </style>
 </head>
@@ -26,17 +26,15 @@
     <div id="map"></div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize map
-            var map = L.map('map', {
-                center: [18.31, -65.30],
-                zoom: 13
-            });
+        // Ensure the DOM is fully loaded before initializing
+        window.addEventListener('load', function() {
+            // Initializing map at Culebra coordinates
+            var map = L.map('map').setView([18.31, -65.30], 13);
 
-            // Use OpenStreetMap with a direct HTTPS link
-            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            // Using HTTPS tile layer to avoid Mixed Content errors on GitHub Pages
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
-                attribution: '&copy; <a href="http://www.openstreetmap.org">OpenStreetMap</a>'
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             }).addTo(map);
 
             // Your Locations
@@ -47,15 +45,14 @@
                 { n: "Playa Zoni", lt: 18.3197, lg: -65.2757 }
             ];
 
-            // Add Markers
+            // Add Pins
             locations.forEach(function(p) {
                 L.marker([p.lt, p.lg]).addTo(map).bindPopup(p.n);
             });
 
-            // CRITICAL GITHUB PAGES FIX: 
-            // Forces map to "wake up" after a tiny delay to fix the grey box bug
-            setTimeout(function(){ 
-                map.invalidateSize(); 
+            // Final check to "wake up" map rendering engine
+            setTimeout(function() {
+                map.invalidateSize();
             }, 500);
         });
     </script>
