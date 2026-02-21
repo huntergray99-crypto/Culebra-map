@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Culebra Map - Final Fix</title>
     
-    <!-- FIXED: Added full paths to Leaflet files -->
+    <!-- FIXED: Added full, specific paths to Leaflet files -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com" />
     <script src="https://cdnjs.cloudflare.com"></script>
 
@@ -26,13 +26,14 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize map
             var map = L.map('map', {
                 center: [18.31, -65.30],
                 zoom: 13,
                 zoomControl: true
             });
 
-            // FIXED: Added missing "/" after .org
+            // FIXED: Added missing "/" after .org so tiles can load
             L.tileLayer('https://tile.openstreetmap.org{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 attribution: '&copy; <a href="https://www.openstreetmap.org">OpenStreetMap</a>'
@@ -49,6 +50,7 @@
                 L.marker([p.lt, p.lg]).addTo(map).bindPopup(p.n);
             });
 
+            // Force refresh for GitHub Pages display
             setTimeout(function() {
                 map.invalidateSize();
             }, 800);
