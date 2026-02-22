@@ -33,7 +33,7 @@
 
             // Your Locations
             var locations = [
-                { name: "Zaco's Tacos", lat: 18.300, lng: -65.29558, desc: "Zacos Tacos" },
+                
                       { 
                 name: "Melones Beach", 
                 lat: 18.303469, 
@@ -52,13 +52,28 @@
                 lng: -65.318056, 
                 desc: "Consistently voted one of the world's best beaches, WW2 tanks, white sands, crystal clear water, this is the premier Culebra destination" 
             },
+                { name: "Culebra Ferry Terminal", lat: 18.301451, lng: -65.302530, desc: "Our beloved Ferry Terminal, please be sure to arrive 1 hour before departure to avoid delays!", isSmall: true },
+
             ];
 
             // Add the Pins to the map
             locations.forEach(function(p) {
-                L.marker([p.lat, p.lg || p.lng]).addTo(map)
-                    .bindPopup("<b>" + p.name + "</b><br>" + (p.desc || ""));
-            });
+    // If isSmall is true, make it 15x25 (small), otherwise 25x41 (standard)
+    var iconSize = p.isSmall ? : ;
+    var iconAnchor = [iconSize[0] / 2, iconSize[1]];
+    
+    var customIcon = L.icon({
+        iconUrl: 'https://unpkg.com',
+        shadowUrl: 'https://unpkg.com',
+        iconSize: iconSize,
+        iconAnchor: iconAnchor,
+        popupAnchor: [1, -iconSize[1]]
+    });
+
+    L.marker([p.lat, p.lng], { icon: customIcon }).addTo(map)
+        .bindPopup("<b>" + p.name + "</b><br>" + (p.desc || ""));
+});
+
             
             // Final nudge for Safari
             setTimeout(function(){ map.invalidateSize(); }, 500);
