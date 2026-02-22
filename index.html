@@ -31,40 +31,42 @@
                 attribution: '&copy; OpenStreetMap'
             }).addTo(map);
 
-            // Your Locations
-            // ... existing code ...
-        // Your Locations
-                                            var locations = [
-                { 
-                    name: "Melones Beach", 
-                    lat: 18.303469, 
-                    lng: -65.310197, 
-                    desc: "Marine reserve reef snorkeling (fish everywhere!), turtles, rays, island views.<br><br><a href='https://bluewatercharters.com' target='_blank'>bluewatercharters.com</a>" 
-                },
-                { 
-                    name: "Playa Flamenco", 
-                    lat: 18.331667, 
-                    lng: -65.318056, 
-                    desc: "Consistently voted one of the world's best beaches, WW2 tanks, white sands, crystal clear water, this is the premier Culebra destination" 
-                },
-                { 
-                    name: "Playa Zoni", 
-                    lat: 18.319636, 
-                    lng: -65.254862, 
-                    desc: "A beautiful 15 minute drive from town, offering stunning views of Culebrita, Cayo Norte, and even Saint Thomas!! Beautiful walking beach with a wonderful secluded vibe." 
-                },
-                { name: "Todo Culebra Plaza Hub", lat: 18.3012, lng: -65.30213, desc: "www.shopculebra.com" },
-                { name: "Zaco's Tacos", lat: 18.300, lng: -65.29558, desc: "Zacos Tacos" }
-            ];
+            <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var map = L.map('map').setView([18.31, -65.30], 13);
 
-            // Add the Pins to the map
-            locations.forEach(function(p) {
-                // This 'p.lng' must match the 'lng' in your list above
-                L.marker([p.lat, p.lng]).addTo(map)
-                    .bindPopup("<b>" + p.name + "</b><br>" + (p.desc || ""));
-            });
-            
-            // Fix for MacBook M1/Safari display
-            setTimeout(function(){ map.invalidateSize(); }, 500);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+
+        var locations = [
+            { 
+                name: "Melones Beach", 
+                lat: 18.303469, 
+                lng: -65.310197, 
+                desc: "Marine reserve reef snorkeling (fish everywhere!), turtles, rays, island views.<br><br><a href='https://bluewatercharters.com' target='_blank'>bluewatercharters.com</a>" 
+            },
+            { 
+                name: "Playa Flamenco", 
+                lat: 18.331667, 
+                lng: -65.318056, 
+                desc: "Consistently voted one of the world's best beaches, WW2 tanks, white sands, crystal clear water, this is the premier Culebra destination" 
+            },
+            { 
+                name: "Playa Zoni", 
+                lat: 18.319636, 
+                lng: -65.254862, 
+                desc: "A beautiful 15 minute drive from town, offering stunning views of Culebrita, Cayo Norte, and even Saint Thomas!! Beautiful walking beach with a wonderful secluded vibe." 
+            },
+            { name: "Todo Culebra Plaza Hub", lat: 18.3012, lng: -65.30213, desc: "www.shopculebra.com" },
+            { name: "Zaco's Tacos", lat: 18.300, lng: -65.29558, desc: "Zacos Tacos" }
+        ];
+
+        locations.forEach(function(p) {
+            L.marker([p.lat, p.lng]).addTo(map)
+                .bindPopup("<b>" + p.name + "</b><br>" + (p.desc || ""));
         });
-    </script>
+        
+        setTimeout(function(){ map.invalidateSize(); }, 500);
+    });
+</script>
