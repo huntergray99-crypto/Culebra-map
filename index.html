@@ -5,30 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Culebra Explorer</title>
     
-    <!-- 1. LEAFLET ENGINE -->
+    <!-- LEAFLET CORE -->
     <link rel="stylesheet" href="https://unpkg.com" />
     <script src="https://unpkg.com"></script>
 
-    <!-- 2. SEARCH PLUGIN -->
+    <!-- SEARCH PLUGIN -->
     <link rel="stylesheet" href="https://unpkg.com" />
     <script src="https://unpkg.com"></script>
 
     <style>
-        html, body { margin: 0; padding: 0; height: 100%; width: 100%; }
-        #map { 
-            height: 100vh; 
-            width: 100%; 
-            background: #aad3df; /* Light blue background while loading */
-        }
-
-        /* Button Styling */
+        html, body, #map { height: 100vh; width: 100%; margin: 0; padding: 0; background: #aad3df; }
+        
         .leaflet-control-custom button {
-            background: white !important;
-            border: 2px solid rgba(0,0,0,0.2) !important;
-            border-radius: 4px;
-            width: 34px; height: 34px;
-            cursor: pointer; font-size: 20px;
-            display: flex; align-items: center; justify-content: center;
+            background: white !important; border: 2px solid rgba(0,0,0,0.2) !important;
+            border-radius: 4px; width: 34px; height: 34px; cursor: pointer;
+            font-size: 20px; display: flex; align-items: center; justify-content: center;
             box-shadow: 0 1px 5px rgba(0,0,0,0.4);
         }
         
@@ -37,106 +28,76 @@
     </style>
 </head>
 <body>
-
     <div id="map"></div>
-
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize map with a specific renderer to prevent grey screen
-            var map = L.map('map', {
-                center: [18.31, -65.30],
-                zoom: 13,
-                tap: false // Helps with mobile clicking
-            });
+            // A. Setup Map Instance
+            var map = L.map('map').setView([18.31, -65.30], 13);
 
-            // Reliable Tile Layer
-            L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
+            // B. Reliable Tiles (Primary HTTPS OSM)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             }).addTo(map);
 
+            // C. All Your Locations Restored
             var locations = [
+                { name: "Culebra Ferry Terminal", lat: 18.301451, lng: -65.302530, desc: "Arrive 1 hour early!" },
                 { 
-                    name: "Culebra Ferry Terminal", 
-                    lat: 18.301451, lng: -65.302530, 
-                    desc: "Our one and only Ferry Terminal! Arrive 1 hour early." 
+                    name: "Isla Culebrita", lat: 18.318654, lng: -65.227238, 
+                    desc: "<img src='https://upload.wikimedia.org'>The Caribbean's last true virgin island! Book with <a href='https://www.gammyswatertours.com'>Gammy's</a>!" 
                 },
                 { 
-                    name: "Isla Culebrita", 
-                    lat: 18.318654, lng: -65.227238, 
-                    desc: "<img src='https://upload.wikimedia.org'>The Caribbean's last true virgin island! Book with <a href='https://www.gammyswatertours.com' target='_blank'>Gammy's</a>!" 
+                    name: "Punta Soldado", lat: 18.281876, lng: -65.286575, 
+                    desc: "Sunset views. Jeep/E-Bike only! <a href='https://www.todoculebra.com'>todoculebra.com</a>" 
                 },
+                { name: "Playa Datiles", lat: 18.296597, lng: -65.300179, desc: "Most romantic beach! Requires 4x4 or a capable E-Bike." },
+                { name: "Playa Melones", lat: 18.303469, lng: -65.310197, desc: "Marine reserve snorkeling. <a href='https://bluewatercharters.com'>bluewatercharters.com</a>" },
+                { name: "Playa Zoni", lat: 18.319636, lng: -65.254862, desc: "Beautiful drive. Secluded vibe." },
+                { name: "Playa Flamenco", lat: 18.331667, lng: -65.318056, desc: "Famous white sands and WW2 tanks." },
                 { 
-                    name: "Punta Soldado", 
-                    lat: 18.281876, lng: -65.286575, 
-                    desc: "Southernmost beach with sunset views. Jeep/E-Bike only! Get one at <a href='https://www.todoculebra.com' target='_blank'>todoculebra.com</a>" 
-                },
-                { 
-                    name: "Playa Datiles", 
-                    lat: 18.296597, lng: -65.300179, 
-                    desc: "Most romantic beach! Requires 4x4 or a capable E-Bike." 
-                },
-                { 
-                    name: "Playa Melones", 
-                    lat: 18.303469, lng: -65.310197, 
-                    desc: "Marine reserve snorkeling. <a href='https://bluewatercharters.com' target='_blank'>bluewatercharters.com</a>" 
-                },
-                { 
-                    name: "Playa Zoni", 
-                    lat: 18.319636, lng: -65.254862, 
-                    desc: "Beautiful 15 minute drive. Secluded vibe." 
-                },
-                { 
-                    name: "Playa Flamenco", 
-                    lat: 18.331667, lng: -65.318056, 
-                    desc: "World famous white sands and WW2 tanks." 
-                },
-                { 
-                    name: "Hector El Protector", 
-                    lat: 18.300682, lng: -65.302170, 
-                    desc: "<img src='https://www.discoverpuertorico.com'>Our wooden troll guardian!" 
+                    name: "Hector El Protector", lat: 18.300682, lng: -65.302170, 
+                    desc: "<img src='https://www.discoverpuertorico.com'>Wooden troll guardian!" 
                 }
             ];
 
+            // D. Add Markers
             locations.forEach(function(p) {
-                L.marker([p.lat, p.lng]).addTo(map)
-                    .bindPopup("<b>" + p.name + "</b><br>" + p.desc);
+                L.marker([p.lat, p.lng]).addTo(map).bindPopup("<b>" + p.name + "</b><br>" + p.desc);
             });
 
-            // 1. Search
+            // E. Search Bar
             L.Control.geocoder({ defaultMarkGeocode: true }).addTo(map);
 
-            // 2. Home
+            // F. Home Button
             var HomeBtn = L.Control.extend({
                 options: { position: 'topleft' },
                 onAdd: function (map) {
-                    var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-                    container.innerHTML = '<button type="button">🏠</button>';
-                    container.onclick = function() { map.setView([18.31, -65.30], 13); };
-                    return container;
+                    var div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+                    div.innerHTML = '<button type="button" title="Home">🏠</button>';
+                    div.onclick = function() { map.setView([18.31, -65.30], 13); };
+                    return div;
                 }
             });
             map.addControl(new HomeBtn());
 
-            // 3. Toggle Fullscreen
+            // G. Toggle Fullscreen
             var FSBtn = L.Control.extend({
                 options: { position: 'topleft' },
                 onAdd: function (map) {
-                    var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-                    container.innerHTML = '<button type="button">↕️</button>';
-                    container.onclick = function() {
+                    var div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+                    div.innerHTML = '<button type="button" title="Fullscreen">↕️</button>';
+                    div.onclick = function() {
                         var elem = document.getElementById("map");
                         if (!document.fullscreenElement) { elem.requestFullscreen(); } 
                         else { document.exitFullscreen(); }
                     };
-                    return container;
+                    return div;
                 }
             });
             map.addControl(new FSBtn());
 
-            // FORCE RE-RENDER
-            setTimeout(function() { 
-                map.invalidateSize(); 
-            }, 200);
+            // FORCE RENDER
+            setTimeout(() => { map.invalidateSize(); }, 500);
         });
     </script>
 </body>
