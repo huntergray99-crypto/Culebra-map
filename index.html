@@ -5,28 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Culebra Explorer Map</title>
     
-    <!-- 1. LEAFLET ENGINE (Must be first) -->
+    <!-- 1. LEAFLET ENGINE -->
+    <link rel="stylesheet" href="https://unpkg.com" crossorigin="" />
+    <script src="https://unpkg.com" crossorigin=""></script>
+
+    <!-- 2. SEARCH PLUGIN -->
     <link rel="stylesheet" href="https://unpkg.com" />
     <script src="https://unpkg.com"></script>
-
-    <!-- 2. SEARCH BAR PLUGIN (Must be second) -->
-    <link rel="stylesheet" href="https://unpkg.com" />
-    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
     <style>
         #map { height: 100vh; width: 100%; background: #ddd; }
         body { margin: 0; padding: 0; font-family: sans-serif; }
 
-        /* Makes the custom Home/Fullscreen buttons look professional */
+        /* Custom Button Styling */
         .leaflet-control-custom button {
-            background: white; border: 2px solid rgba(0,0,0,0.2);
-            border-radius: 4px; width: 34px; height: 34px;
-            cursor: pointer; font-size: 20px; display: flex;
-            align-items: center; justify-content: center;
+            background: white !important;
+            border: 2px solid rgba(0,0,0,0.2) !important;
+            border-radius: 4px;
+            width: 34px; height: 34px;
+            cursor: pointer; font-size: 20px;
+            display: flex; align-items: center; justify-content: center;
             box-shadow: 0 1px 5px rgba(0,0,0,0.4);
         }
-        .leaflet-control-custom button:hover { background-color: #f4f4f4; }
-        .leaflet-popup-content { font-size: 14px; line-height: 1.5; }
+        .leaflet-control-custom button:hover { background-color: #f4f4f4 !important; }
+        
+        /* Popup Formatting */
+        .leaflet-popup-content { font-size: 14px; line-height: 1.4; width: 300px !important; }
+        .leaflet-popup-content img { border-radius: 8px; margin-bottom: 8px; }
     </style>
 </head>
 <body>
@@ -35,48 +40,66 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // A. Setup Map Instance
             var map = L.map('map').setView([18.31, -65.30], 13);
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap'
             }).addTo(map);
 
-            // B. Your Location Data
+            // ALL YOUR ORIGINAL LOCATIONS RESTORED
             var locations = [
-                { name: "Culebra Ferry Terminal", lat: 18.301451, lng: -65.302530, desc: "Arrive 1 hour early!" },
+                { 
+                    name: "Culebra Ferry Terminal", 
+                    lat: 18.301451, lng: -65.302530, 
+                    desc: "Our one and only Ferry Terminal, please be sure to arrive 1 hour before departure to avoid delays!" 
+                },
                 { 
                     name: "Isla Culebrita", 
-                    lat: 18.318654, 
-                    lng: -65.227238, 
-                    desc: "<img src='https://upload.wikimedia.org' style='width:100%;border-radius:8px;margin-bottom:8px;'><br>Virgin island paradise. Visit with <a href='https://www.gammyswatertours.com'>Gammy's</a>!" 
+                    lat: 18.318654, lng: -65.227238, 
+                    desc: "<img src='https://upload.wikimedia.org' style='width:100%;'><br>Welcome to Culebrita! The Caribbean's last true virgin island! From Army tanks to the historic lighthouse, snorkeling the reefs with turtles, this is sure to be an unforgettable experience!!! Book with <a href='https://www.gammyswatertours.com' target='_blank'>Gammy's Water Tours</a>!" 
                 },
-                { name: "Punta Soldado", lat: 18.281876, lng: -65.286575, desc: "Sunset views. 4x4 or E-Bike only! No golf carts." },
-                { name: "Playa Datiles", lat: 18.296597, lng: -65.300179, desc: "Romantic beach. Terrain is very rugged." },
-                { name: "Playa Melones", lat: 18.303469, lng: -65.310197, desc: "Top tier snorkeling. <a href='https://bluewatercharters.com'>Blue Water Charters</a>" },
-                { name: "Playa Zoni", lat: 18.319636, lng: -65.254862, desc: "Secluded vibes and views of St. Thomas." },
-                { name: "Playa Flamenco", lat: 18.331667, lng: -65.318056, desc: "World famous white sand and iconic tanks." },
+                { 
+                    name: "Punta Soldado", 
+                    lat: 18.281876, lng: -65.286575, 
+                    desc: "Our southernmost beach, offering stunning sunset views. Golf Carts are strictly prohibited here as the road is steep and rocky. Grab an E-Bike from <a href='https://www.todoculebra.com' target='_blank'>www.todoculebra.com</a>" 
+                },
+                { 
+                    name: "Playa Datiles", 
+                    lat: 18.296597, lng: -65.300179, 
+                    desc: "Most romantic beach in the Caribbean! Requires 4x4 or a capable E-Bike/E-Moped from <a href='https://www.todoculebra.com' target='_blank'>www.todoculebra.com</a>." 
+                },
+                { 
+                    name: "Playa Melones", 
+                    lat: 18.303469, lng: -65.310197, 
+                    desc: "Marine reserve reef snorkeling (fish everywhere!), turtles, rays. <a href='https://bluewatercharters.com' target='_blank'>bluewatercharters.com</a>" 
+                },
+                { 
+                    name: "Playa Zoni", 
+                    lat: 18.319636, lng: -65.254862, 
+                    desc: "A beautiful 15 minute drive from town. Beautiful walking beach with a wonderful secluded vibe." 
+                },
+                { 
+                    name: "Playa Flamenco", 
+                    lat: 18.331667, lng: -65.318056, 
+                    desc: "Consistently voted one of the world's best beaches, WW2 tanks, white sands, and crystal clear water." 
+                },
                 { 
                     name: "Hector El Protector", 
-                    lat: 18.300682, 
-                    lng: -65.302170, 
-                    desc: "<img src='https://www.discoverpuertorico.com' style='width:100%; border-radius:5px;'><br>The famous wooden troll guardian." 
+                    lat: 18.300682, lng: -65.302170, 
+                    desc: "<img src='https://www.discoverpuertorico.com' style='width:100%;'><br>Hector the Protector, our beloved guardian. Constructed by Thomas Dambo. Visit Hector today!" 
                 }
             ];
 
-            // C. Add Markers (Fixed the loop and popup width)
+            // Add the Pins
             locations.forEach(function(p) {
                 L.marker([p.lat, p.lng]).addTo(map)
                     .bindPopup("<b>" + p.name + "</b><br>" + p.desc, { maxWidth: 300 });
             });
 
-            // D. FEATURE 1: Search Bar (Top Right)
-            L.Control.geocoder({
-                defaultMarkGeocode: true,
-                placeholder: "Search Culebra..."
-            }).addTo(map);
+            // 1. SEARCH BAR
+            L.Control.geocoder({ defaultMarkGeocode: true, placeholder: "Search Culebra..." }).addTo(map);
 
-            // E. FEATURE 2: Re-center (Home) Button
+            // 2. RE-CENTER (HOME) BUTTON
             var HomeBtn = L.Control.extend({
                 options: { position: 'topleft' },
                 onAdd: function (map) {
@@ -88,7 +111,7 @@
             });
             map.addControl(new HomeBtn());
 
-            // F. FEATURE 3: Fullscreen Toggle Button
+            // 3. FULLSCREEN (TOGGLE) BUTTON
             var FSBtn = L.Control.extend({
                 options: { position: 'topleft' },
                 onAdd: function (map) {
@@ -104,13 +127,6 @@
             });
             map.addControl(new FSBtn());
 
-            // G. Geolocation Support (Circle for where you are)
-            map.locate({setView: false, watch: true});
-            map.on('locationfound', function(e) {
-                L.circle(e.latlng, { radius: e.accuracy / 2, color: 'blue' }).addTo(map);
-            });
-
-            // Safari fix
             setTimeout(function(){ map.invalidateSize(); }, 500);
         });
     </script>
