@@ -17,13 +17,32 @@
         #map { height: 100vh; width: 100%; background: #ddd; }
         body { margin: 0; padding: 0; font-family: sans-serif; }
         /* Clean up custom buttons */
-        .leaflet-control-custom button {
-            background: white; border: none; width: 30px; height: 30px; 
-            line-height: 30px; cursor: pointer; font-size: 16px; border-radius: 2px;
+           .leaflet-control-custom button {
+            background: white;
+            border: 2px solid rgba(0,0,0,0.2);
+            border-radius: 4px;
+            width: 34px;
+            height: 34px;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.4);
         }
-        .leaflet-control-custom button:hover { background: #f4f4f4; }
+        .leaflet-control-custom button:hover {
+            background-color: #f4f4f4;
+        }
     </style>
 </head>
+    <!-- 1. THE ENGINE (Leaflet First) -->
+<link rel="stylesheet" href="https://unpkg.com" />
+<script src="https://unpkg.com"></script>
+
+<!-- 2. THE ACCESSORIES (Search Bar Second) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
 <body>
 
     <div id="map"></div>
@@ -58,37 +77,101 @@
             ];
 
             // Add Pins
+           <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Culebra Map</title>
+    
+    <!-- 1. Leaflet Core -->
+    <link rel="stylesheet" href="https://unpkg.com" />
+    <script src="https://unpkg.com"></script>
+
+    <!-- 2. Search Bar Plugin (CRITICAL: These make the search bar appear) -->
+    <link rel="stylesheet" href="https://unpkg.com" />
+    <script src="https://unpkg.com"></script>
+
+    <style>
+        #map { height: 100vh; width: 100%; background: #ddd; }
+        body { margin: 0; padding: 0; }
+
+        /* 3. Button Styling (CRITICAL: This makes the Home/FS buttons visible) */
+        .leaflet-control-custom button {
+            background: white;
+            border: 2px solid rgba(0,0,0,0.2);
+            border-radius: 4px;
+            width: 34px;
+            height: 34px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+        }
+        .leaflet-control-custom button:hover { background-color: #f4f4f4; }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var map = L.map('map').setView([18.31, -65.30], 13);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap'
+            }).addTo(map);
+
+            var locations = [
+                { name: "Culebra Ferry Terminal", lat: 18.301451, lng: -65.302530, desc: "Arrive 1 hour early!" },
+                { name: "Isla Culebrita", lat: 18.318654, lng: -65.227238, desc: "Paradise island." },
+                { name: "Punta Soldado", lat: 18.281876, lng: -65.286575, desc: "Sunset views." },
+                { name: "Playa Datiles", lat: 18.296597, lng: -65.300179, desc: "Romantic beach." },
+                { name: "Playa Melones", lat: 18.303469, lng: -65.310197, desc: "Great snorkeling." },
+                { name: "Playa Zoni", lat: 18.319636, lng: -65.254862, desc: "Secluded vibe." },
+                { name: "Playa Flamenco", lat: 18.331667, lng: -65.318056, desc: "World's best beach." },
+                { name: "Hector El Protector", lat: 18.300682, lng: -65.302170, desc: "Wooden troll guardian." }
+            ];
+
+            // Add Pins
             locations.forEach(function(p) {
                 L.marker([p.lat, p.lng]).addTo(map)
                     .bindPopup("<b>" + p.name + "</b><br>" + p.desc);
             });
 
-            // 1. Search Bar
-            L.Control.geocoder({ defaultMarkGeocode: true }).addTo(map);
+            // 1. Search Bar Logic
+            L.Control.geocoder({ 
+                defaultMarkGeocode: true,
+                placeholder: "Search Culebra..." 
+            }).addTo(map);
 
-            // 2. Geolocation
+            // 2. Geolocation Logic
             map.locate({setView: false, watch: true});
             map.on('locationfound', function(e) {
                 L.circle(e.latlng, { radius: e.accuracy / 2 }).addTo(map);
             });
 
-            // 3. Home Button
+            // 3. Home Button Logic
             var HomeBtn = L.Control.extend({
                 options: { position: 'topleft' },
                 onAdd: function (map) {
                     var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-                    container.innerHTML = '<button onclick="location.reload()">🏠</button>';
+                    container.innerHTML = '<button title="Reset Map">🏠</button>';
+                    container.onclick = function() { map.setView([18.31, -65.30], 13); };
                     return container;
                 }
             });
             map.addControl(new HomeBtn());
 
-            // 4. Fullscreen
+            // 4. Fullscreen Logic
             var FSBtn = L.Control.extend({
                 options: { position: 'topleft' },
                 onAdd: function (map) {
                     var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-                    container.innerHTML = '<button>↕️</button>';
+                    container.innerHTML = '<button title="Fullscreen">↕️</button>';
                     container.onclick = function() {
                         var elem = document.getElementById("map");
                         if (!document.fullscreenElement) { elem.requestFullscreen(); } 
@@ -104,4 +187,3 @@
     </script>
 </body>
 </html>
-
