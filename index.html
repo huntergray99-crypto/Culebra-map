@@ -5,86 +5,62 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Culebra Map</title>
 
-<!-- Leaflet -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-
-<!-- Leaflet Routing Machine (pinned) -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css"/>
-<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+<!--
+  FIX 1: Moved from unpkg to cdnjs — faster globally, avoids the
+  cold-start timeouts that silently kill the map on Chrome/Windows.
+  FIX 2: crossorigin="anonymous" instead of bare crossorigin="" —
+  Chrome is stricter about CORS and rejects the bare attribute form.
+-->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin="anonymous"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.min.css" crossorigin="anonymous"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.min.js" crossorigin="anonymous"></script>
 
 <style>
   *, *::before, *::after { box-sizing: border-box; }
-  html, body { height: 100%; margin: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-  body { display: flex; flex-direction: column; }
+  html, body {
+    height: 100%;
+    margin: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  body { display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-orient: vertical; -webkit-box-direction: normal; -ms-flex-direction: column; flex-direction: column; }
 
-  #map { flex: 1; width: 100%; }
+  /* FIX 3: min-height:0 forces Chrome to respect flex:1 on #map.
+     Without this, Chrome can collapse the map div to zero height. */
+  #map { -webkit-box-flex: 1; -ms-flex: 1; flex: 1; min-height: 0; width: 100%; }
 
   .welcome-badge {
-    position: absolute;
-    top: 12px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000;
-    background: linear-gradient(135deg, #006994, #00a0b0);
-    color: #fff;
-    padding: 6px 18px;
-    font-size: 14px;
-    font-weight: 600;
-    border-radius: 999px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.4);
-    white-space: nowrap;
-    pointer-events: none;
-    letter-spacing: 0.01em;
+    position: absolute; top: 12px; left: 50%; -webkit-transform: translateX(-50%); transform: translateX(-50%);
+    z-index: 1000; background: linear-gradient(135deg, #006994, #00a0b0); color: #fff;
+    padding: 6px 18px; font-size: 14px; font-weight: 600; border-radius: 999px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.4); white-space: nowrap; pointer-events: none; letter-spacing: 0.01em;
   }
 
-  .leaflet-popup-content-wrapper {
-    background: #fff;
-    border-radius: 14px;
-    box-shadow: 0 6px 24px rgba(0,0,0,0.18);
-    padding: 0;
-    overflow: hidden;
-    border: none;
-  }
+  /* POPUP */
+  .leaflet-popup-content-wrapper { background: #fff; border-radius: 14px; box-shadow: 0 6px 24px rgba(0,0,0,0.18); padding: 0; overflow: hidden; border: none; }
   .leaflet-popup-tip { background: #fff; }
-  .leaflet-popup-content {
-    margin: 0;
-    font-size: 13px;
-    line-height: 1.5;
-    min-width: 250px;
-    max-width: 300px;
-  }
-  .popup-img { width: 100%; height: 130px; object-fit: cover; display: block; }
+  .leaflet-popup-content { margin: 0; font-size: 13px; line-height: 1.5; min-width: 250px; max-width: 300px; }
+  .popup-img { width: 100%; height: 130px; -o-object-fit: cover; object-fit: cover; display: block; }
   .popup-body { padding: 12px 14px 14px; }
   .popup-title { font-size: 15px; font-weight: 700; color: #111; margin-bottom: 6px; }
   .popup-desc  { font-size: 12px; color: #555; margin-bottom: 12px; line-height: 1.5; }
 
   .btn-directions {
-    display: block;
-    width: 100%;
-    padding: 9px 0;
-    background: linear-gradient(135deg, #006994, #00a0b0);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    text-align: center;
-    transition: opacity 0.15s;
-    margin-bottom: 6px;
-    letter-spacing: 0.01em;
+    display: block; width: 100%; padding: 9px 0;
+    background: linear-gradient(135deg, #006994, #00a0b0); color: #fff;
+    border: none; border-radius: 8px; font-size: 13px; font-weight: 700;
+    cursor: pointer; text-align: center; -webkit-transition: opacity 0.15s; transition: opacity 0.15s;
+    margin-bottom: 6px; letter-spacing: 0.01em;
   }
   .btn-directions:hover { opacity: 0.88; }
   .btn-directions:disabled { background: #aaa; cursor: not-allowed; }
 
+  /* FIX 4: removed env(safe-area-inset-bottom) — unsupported on
+     Chrome/Windows and was breaking the entire flex column layout,
+     leaving #map with zero rendered height. */
   .fallback-row { display: none; gap: 6px; margin-top: 6px; }
-  .fallback-row.visible { display: flex; }
-  .btn-fallback {
-    flex: 1; padding: 7px 0; border: none; border-radius: 7px;
-    font-size: 12px; font-weight: 600; cursor: pointer; text-align: center;
-    text-decoration: none; color: #fff; transition: opacity 0.15s; display: block;
-  }
+  .fallback-row.visible { display: -webkit-box; display: -ms-flexbox; display: flex; }
+  .btn-fallback { -webkit-box-flex: 1; -ms-flex: 1; flex: 1; padding: 7px 0; border: none; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; text-decoration: none; color: #fff; -webkit-transition: opacity 0.15s; transition: opacity 0.15s; display: block; }
   .btn-fallback:hover { opacity: 0.85; }
   .btn-apple  { background: #1c1c1e; }
   .btn-google { background: #4285F4; }
@@ -93,57 +69,45 @@
   .route-status.error { color: #e53935; }
 
   #turn-panel {
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    z-index: 1000;
-    background: #fff;
-    border-radius: 18px 18px 0 0;
-    box-shadow: 0 -4px 24px rgba(0,0,0,0.18);
-    padding-bottom: env(safe-area-inset-bottom, 0);
-    transform: translateY(100%);
-    transition: transform 0.32s cubic-bezier(0.4,0,0.2,1);
+    position: absolute; bottom: 0; left: 0; right: 0; z-index: 1000;
+    background: #fff; border-radius: 18px 18px 0 0; box-shadow: 0 -4px 24px rgba(0,0,0,0.18);
+    padding-bottom: 16px;
+    -webkit-transform: translateY(100%); transform: translateY(100%);
+    -webkit-transition: -webkit-transform 0.32s cubic-bezier(0.4,0,0.2,1); transition: transform 0.32s cubic-bezier(0.4,0,0.2,1);
     max-height: 52vh;
-    display: flex;
-    flex-direction: column;
+    display: -webkit-box; display: -ms-flexbox; display: flex;
+    -webkit-box-orient: vertical; -webkit-box-direction: normal; -ms-flex-direction: column; flex-direction: column;
   }
-  #turn-panel.open { transform: translateY(0); }
-
-  #turn-handle { width: 36px; height: 4px; background: #ddd; border-radius: 2px; margin: 10px auto 0; flex-shrink: 0; }
-  #turn-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px 8px; flex-shrink: 0; border-bottom: 1px solid #f0f0f0; }
+  #turn-panel.open { -webkit-transform: translateY(0); transform: translateY(0); }
+  #turn-handle { width: 36px; height: 4px; background: #ddd; border-radius: 2px; margin: 10px auto 0; -ms-flex-negative: 0; flex-shrink: 0; }
+  #turn-header { display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-align: center; -ms-flex-align: center; align-items: center; -webkit-box-pack: justify; -ms-flex-pack: justify; justify-content: space-between; padding: 10px 16px 8px; -ms-flex-negative: 0; flex-shrink: 0; border-bottom: 1px solid #f0f0f0; }
   #turn-title { font-size: 15px; font-weight: 700; color: #111; }
   #turn-meta  { font-size: 12px; color: #888; margin-top: 2px; }
-  #turn-close { background: #f0f0f0; border: none; border-radius: 50%; width: 28px; height: 28px; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #555; flex-shrink: 0; }
-  #turn-steps { overflow-y: auto; padding: 8px 0 20px; flex: 1; }
-
-  .turn-step { display: flex; align-items: flex-start; gap: 10px; padding: 8px 16px; border-bottom: 1px solid #f5f5f5; font-size: 13px; color: #222; line-height: 1.4; }
+  #turn-close { background: #f0f0f0; border: none; border-radius: 50%; width: 28px; height: 28px; font-size: 15px; cursor: pointer; display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-align: center; -ms-flex-align: center; align-items: center; -webkit-box-pack: center; -ms-flex-pack: center; justify-content: center; color: #555; -ms-flex-negative: 0; flex-shrink: 0; }
+  #turn-steps { overflow-y: auto; padding: 8px 0 20px; -webkit-box-flex: 1; -ms-flex: 1; flex: 1; }
+  .turn-step { display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-align: start; -ms-flex-align: start; align-items: flex-start; gap: 10px; padding: 8px 16px; border-bottom: 1px solid #f5f5f5; font-size: 13px; color: #222; line-height: 1.4; }
   .turn-step:last-child { border-bottom: none; }
-  .turn-icon { font-size: 17px; flex-shrink: 0; width: 22px; text-align: center; margin-top: 1px; }
+  .turn-icon { font-size: 17px; -ms-flex-negative: 0; flex-shrink: 0; width: 22px; text-align: center; margin-top: 1px; }
   .turn-dist { font-size: 11px; color: #888; margin-top: 2px; }
 
-  .user-dot {
-    width: 14px; height: 14px; border-radius: 50%;
-    background: #2f80ff; border: 3px solid #fff;
-    box-shadow: 0 0 0 4px rgba(47,128,255,0.35), 0 0 0 8px rgba(47,128,255,0.12);
-    animation: pulse 2s infinite;
+  .user-dot { width: 14px; height: 14px; border-radius: 50%; background: #2f80ff; border: 3px solid #fff; box-shadow: 0 0 0 4px rgba(47,128,255,0.35), 0 0 0 8px rgba(47,128,255,0.12); -webkit-animation: pulse 2s infinite; animation: pulse 2s infinite; }
+  @-webkit-keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 4px rgba(47,128,255,0.35), 0 0 0 8px rgba(47,128,255,0.12); }
+    50%      { box-shadow: 0 0 0 6px rgba(47,128,255,0.45), 0 0 0 14px rgba(47,128,255,0.18); }
   }
   @keyframes pulse {
     0%,100% { box-shadow: 0 0 0 4px rgba(47,128,255,0.35), 0 0 0 8px rgba(47,128,255,0.12); }
     50%      { box-shadow: 0 0 0 6px rgba(47,128,255,0.45), 0 0 0 14px rgba(47,128,255,0.18); }
   }
 
-  .leaflet-control-custom button {
-    background: white; border: 2px solid rgba(0,0,0,0.2); border-radius: 4px;
-    width: 34px; height: 34px; cursor: pointer; font-size: 18px;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 1px 5px rgba(0,0,0,0.3); margin: 2px;
-  }
+  .leaflet-control-custom button { background: white; border: 2px solid rgba(0,0,0,0.2); border-radius: 4px; width: 34px; height: 34px; cursor: pointer; font-size: 18px; display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-align: center; -ms-flex-align: center; align-items: center; -webkit-box-pack: center; -ms-flex-pack: center; justify-content: center; box-shadow: 0 1px 5px rgba(0,0,0,0.3); margin: 2px; }
   .leaflet-control-custom button:hover { background: #f4f4f4; }
   .leaflet-routing-container { display: none !important; }
 </style>
 </head>
 <body>
 
-<div class="welcome-badge">Welcome to Culebra! 🌴 Tap any marker for directions</div>
+<div class="welcome-badge">Welcome to Culebra! &#127796; Tap any marker for directions</div>
 <div id="map"></div>
 
 <div id="turn-panel">
@@ -153,7 +117,7 @@
       <div id="turn-title">Directions</div>
       <div id="turn-meta"></div>
     </div>
-    <button id="turn-close" onclick="clearRoute()">✕</button>
+    <button id="turn-close" onclick="clearRoute()">&#x2715;</button>
   </div>
   <div id="turn-steps"></div>
 </div>
@@ -161,8 +125,8 @@
 <script>
 /* ══════════════════════════════════════════════════════════════════
    INVISIBLE 1000x1000 GRID
-   Never drawn. Snaps user GPS to a clean 16m x 8m intersection
-   before routing so route starts are stable despite GPS drift.
+   Never drawn. Snaps user GPS to nearest ~16m x ~8m intersection
+   before routing so the start point is stable despite GPS drift.
 ══════════════════════════════════════════════════════════════════ */
 var BOUNDS   = { west: -65.365, east: -65.215, south: 18.270, north: 18.345 };
 var CELLS    = 1000;
@@ -178,81 +142,56 @@ function snapToGrid(lat, lng) {
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   LOCATIONS
+   FIX 5: defined first, before any code that references them,
+   so Chrome never hits a reference error on page load.
+══════════════════════════════════════════════════════════════════ */
+var locations = [
+  { name: 'Culebra Ferry Terminal', lat: 18.301451, lng: -65.302530, type: 'ferry', img: null,
+    desc: 'Our one and only ferry terminal &#8212; arrive 1 hour before departure to avoid delays!' },
+  { name: 'Gas Station', lat: 18.301129, lng: -65.300764, type: 'gas', img: null,
+    desc: 'The only gas station on the island.' },
+  { name: 'Isla Culebrita', lat: 18.318654, lng: -65.227238, type: 'beach',
+    img: 'https://upload.wikimedia.org/wikipedia/commons/3/3f/Culebrita_Island%2C_Culebra_Island%2C_Puerto_Rico.jpg',
+    desc: 'The Caribbean\'s last true virgin island &#8212; lighthouse, natural jacuzzis, turtles &amp; rays. 15-min boat ride. Book with <a href="https://www.gammyswatertours.com" target="_blank" style="color:#006994;">Gammy\'s Water Tours</a>!' },
+  { name: 'Punta Soldado', lat: 18.281876, lng: -65.286575, type: 'beach', img: './soldado.jpg',
+    desc: 'Southernmost beach. Stunning sunsets &amp; views of Vieques. 4x4 or E-Bike only &#8212; golf carts strictly prohibited.' },
+  { name: 'Playa Datiles', lat: 18.296597, lng: -65.300179, type: 'beach', img: null,
+    desc: 'Most romantic beach in the Caribbean! Views of Cayo Luis Pe&ntilde;a, Vieques &amp; El Yunque. 4x4 or E-Bike required.' },
+  { name: 'Playa Melones', lat: 18.303469, lng: -65.310197, type: 'beach', img: null,
+    desc: 'Marine reserve reef snorkeling &#8212; fish everywhere, turtles &amp; rays. <a href="https://www.snorkelwithlocals.com" target="_blank" style="color:#006994;">snorkelwithlocals.com</a>' },
+  { name: 'Playa Zoni', lat: 18.319636, lng: -65.254862, type: 'beach', img: null,
+    desc: 'Beautiful 15-min drive from town. Stunning views of Culebrita, Cayo Norte &amp; Saint Thomas.' },
+  { name: 'Playa Flamenco', lat: 18.331667, lng: -65.318056, type: 'beach', img: null,
+    desc: 'Consistently voted one of the world\'s best beaches. WW2 tanks, white sands, crystal-clear water.' },
+  { name: 'Hector El Protector', lat: 18.300682, lng: -65.302170, type: 'hector',
+    img: 'https://www.discoverpuertorico.com/sites/default/files/listing_images/profile/8059/Hector-El-Protector_69BCB335-5056-A36A-080F2CD5E9C0A166-69bcb26d5056a36_69bcb61d-5056-a36a-0867dfd14ace9c20.jpg',
+    desc: 'Our beloved guardian troll, rebuilt by locals after Hurricane Maria. By Thomas Dambo (2014).' }
+];
+
+/* ══════════════════════════════════════════════════════════════════
    MAP
 ══════════════════════════════════════════════════════════════════ */
 var map = L.map('map', { zoomControl: false }).setView([18.308, -65.290], 13);
 
 L.tileLayer(
   'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-  { maxZoom: 19, attribution: '© Esri' }
+  { maxZoom: 19, attribution: '&copy; Esri' }
 ).addTo(map);
 
 L.control.zoom({ position: 'bottomright' }).addTo(map);
 
 var HomeBtn = L.Control.extend({
   options: { position: 'topleft' },
-  onAdd: function() {
+  onAdd: function () {
     var c = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-    c.innerHTML = '<button title="Re-center">🏠</button>';
-    c.onclick = function() { map.setView([18.308, -65.290], 13); };
+    c.innerHTML = '<button title="Re-center">&#127968;</button>';
+    L.DomEvent.on(c, 'click', function () { map.setView([18.308, -65.290], 13); });
+    L.DomEvent.disableClickPropagation(c);
     return c;
   }
 });
 map.addControl(new HomeBtn());
-
-/* ══════════════════════════════════════════════════════════════════
-   LOCATIONS
-══════════════════════════════════════════════════════════════════ */
-var locations = [
-  {
-    name: "Culebra Ferry Terminal",
-    lat: 18.301451, lng: -65.302530, type: "ferry", img: null,
-    desc: "Our one and only ferry terminal — arrive 1 hour before departure to avoid delays!"
-  },
-  {
-    name: "Gas Station",
-    lat: 18.301129, lng: -65.300764, type: "gas", img: null,
-    desc: "The only gas station on the island."
-  },
-  {
-    name: "Isla Culebrita",
-    lat: 18.318654, lng: -65.227238, type: "beach",
-    img: "https://upload.wikimedia.org/wikipedia/commons/3/3f/Culebrita_Island%2C_Culebra_Island%2C_Puerto_Rico.jpg",
-    desc: "The Caribbean's last true virgin island — lighthouse, natural jacuzzis, turtles & rays. 15-min boat ride. Book with <a href='https://www.gammyswatertours.com' target='_blank' style='color:#006994;'>Gammy's Water Tours</a>!"
-  },
-  {
-    name: "Punta Soldado",
-    lat: 18.281876, lng: -65.286575, type: "beach",
-    img: "./soldado.jpg",
-    desc: "Southernmost beach. Stunning sunsets & views of Vieques. 4x4 or E-Bike only — golf carts strictly prohibited."
-  },
-  {
-    name: "Playa Datiles",
-    lat: 18.296597, lng: -65.300179, type: "beach", img: null,
-    desc: "Most romantic beach in the Caribbean! Views of Cayo Luis Pena, Vieques & El Yunque. 4x4 or E-Bike required."
-  },
-  {
-    name: "Playa Melones",
-    lat: 18.303469, lng: -65.310197, type: "beach", img: null,
-    desc: "Marine reserve reef snorkeling — fish everywhere, turtles & rays. <a href='https://www.snorkelwithlocals.com' target='_blank' style='color:#006994;'>snorkelwithlocals.com</a>"
-  },
-  {
-    name: "Playa Zoni",
-    lat: 18.319636, lng: -65.254862, type: "beach", img: null,
-    desc: "Beautiful 15-min drive from town. Stunning views of Culebrita, Cayo Norte & Saint Thomas."
-  },
-  {
-    name: "Playa Flamenco",
-    lat: 18.331667, lng: -65.318056, type: "beach", img: null,
-    desc: "Consistently voted one of the world's best beaches. WW2 tanks, white sands, crystal-clear water."
-  },
-  {
-    name: "Hector El Protector",
-    lat: 18.300682, lng: -65.302170, type: "hector",
-    img: "https://www.discoverpuertorico.com/sites/default/files/listing_images/profile/8059/Hector-El-Protector_69BCB335-5056-A36A-080F2CD5E9C0A166-69bcb26d5056a36_69bcb61d-5056-a36a-0867dfd14ace9c20.jpg",
-    desc: "Our beloved guardian troll, rebuilt by locals after Hurricane Maria. By Thomas Dambo (2014)."
-  }
-];
 
 /* ══════════════════════════════════════════════════════════════════
    STATE
@@ -265,45 +204,54 @@ var activeRoute   = null;
 var watchId       = null;
 
 function clearRoute() {
-  if (activeRoute) { map.removeControl(activeRoute); activeRoute = null; }
+  if (activeRoute) {
+    try { map.removeControl(activeRoute); } catch (e) { /* ignore */ }
+    activeRoute = null;
+  }
   document.getElementById('turn-panel').classList.remove('open');
 }
 
 /* ══════════════════════════════════════════════════════════════════
    HELPERS
+   FIX 6: replaced emoji literals with unicode escapes — emoji
+   characters in JS source can confuse Chrome's JS parser when the
+   file encoding isn't detected correctly, causing silent failures.
 ══════════════════════════════════════════════════════════════════ */
 function turnIcon(type, modifier) {
   var t = ((type || '') + ' ' + (modifier || '')).toLowerCase();
-  if (t.includes('depart'))    return '🚀';
-  if (t.includes('arrive'))    return '📍';
-  if (t.includes('roundabout')) return '🔄';
-  if (t.includes('sharp left')) return '↰';
-  if (t.includes('left'))      return '⬅️';
-  if (t.includes('sharp right')) return '↱';
-  if (t.includes('right'))     return '➡️';
-  if (t.includes('straight') || t.includes('continue')) return '⬆️';
-  if (t.includes('uturn'))     return '↩️';
-  return '⬆️';
+  if (t.indexOf('depart')     !== -1) return '\uD83D\uDE80';
+  if (t.indexOf('arrive')     !== -1) return '\uD83D\uDCCD';
+  if (t.indexOf('roundabout') !== -1) return '\uD83D\uDD04';
+  if (t.indexOf('sharp left') !== -1) return '\u21B0';
+  if (t.indexOf('left')       !== -1) return '\u2B05\uFE0F';
+  if (t.indexOf('sharp right')!== -1) return '\u21B1';
+  if (t.indexOf('right')      !== -1) return '\u27A1\uFE0F';
+  if (t.indexOf('straight')   !== -1) return '\u2B06\uFE0F';
+  if (t.indexOf('continue')   !== -1) return '\u2B06\uFE0F';
+  if (t.indexOf('uturn')      !== -1) return '\u21A9\uFE0F';
+  return '\u2B06\uFE0F';
 }
+
 function fmtDist(m) {
   if (m == null) return '';
   return m >= 1000 ? (m / 1000).toFixed(1) + ' km' : Math.round(m) + ' m';
 }
+
 function fmtTime(s) {
   if (s == null) return '';
   var m = Math.round(s / 60);
-  return m < 60 ? m + ' min' : Math.floor(m/60) + ' h ' + (m%60) + ' min';
+  return m < 60 ? m + ' min' : Math.floor(m / 60) + ' h ' + (m % 60) + ' min';
 }
 
 /* ══════════════════════════════════════════════════════════════════
    ROUTING
-   1. Snap GPS to invisible grid point
-   2. OSRM route → blue line + turn-by-turn drawer
-   3. On failure only: show Apple/Google Maps links
+   1. Snap GPS to nearest invisible grid point
+   2. OSRM route -> blue line on map + turn-by-turn drawer
+   3. On failure ONLY: show Apple / Google Maps fallback links
 ══════════════════════════════════════════════════════════════════ */
 function requestRoute(destName, destLat, destLng, statusEl, fallbackEl, btnEl) {
   if (userLat === null) {
-    statusEl.textContent = '📍 Location not available — please allow location access.';
+    statusEl.textContent = 'Location not available \u2014 please allow location access.';
     statusEl.className = 'route-status error';
     return;
   }
@@ -312,7 +260,7 @@ function requestRoute(destName, destLat, destLng, statusEl, fallbackEl, btnEl) {
   clearRoute();
 
   btnEl.disabled = true;
-  btnEl.textContent = 'Finding route…';
+  btnEl.textContent = 'Finding route\u2026';
   statusEl.textContent = '';
   statusEl.className = 'route-status';
   fallbackEl.classList.remove('visible');
@@ -326,11 +274,11 @@ function requestRoute(destName, destLat, destLng, statusEl, fallbackEl, btnEl) {
     show: false,
     addWaypoints: false,
     draggableWaypoints: false,
-    createMarker: function() { return null; },
+    createMarker: function () { return null; },
     lineOptions: {
       styles: [
         { color: '#ffffff', weight: 9, opacity: 0.35 },
-        { color: '#007AFF', weight: 5, opacity: 1.0  }
+        { color: '#007AFF', weight: 5, opacity: 1.0 }
       ],
       extendToWaypoints: true,
       missingRouteTolerance: 0
@@ -342,24 +290,26 @@ function requestRoute(destName, destLat, destLng, statusEl, fallbackEl, btnEl) {
     })
   }).addTo(map);
 
-  activeRoute.on('routesfound', function(e) {
+  activeRoute.on('routesfound', function (e) {
     var route = e.routes[0];
     var dist  = route.summary.totalDistance;
     var time  = route.summary.totalTime;
     var steps = route.instructions || [];
 
     btnEl.disabled = false;
-    btnEl.textContent = '↑ View turn-by-turn';
-    statusEl.textContent = fmtDist(dist) + '  ·  ' + fmtTime(time);
+    btnEl.textContent = '\u2191 View turn-by-turn';
+    statusEl.textContent = fmtDist(dist) + ' \u00B7 ' + fmtTime(time);
     statusEl.className = 'route-status';
 
-    document.getElementById('turn-title').textContent = '→ ' + destName;
-    document.getElementById('turn-meta').textContent  = fmtDist(dist) + '  ·  ' + fmtTime(time);
+    document.getElementById('turn-title').textContent = '\u2192 ' + destName;
+    document.getElementById('turn-meta').textContent  = fmtDist(dist) + ' \u00B7 ' + fmtTime(time);
 
     var stepsEl = document.getElementById('turn-steps');
     stepsEl.innerHTML = '';
-    steps.forEach(function(step) {
-      var row = document.createElement('div');
+
+    for (var si = 0; si < steps.length; si++) {
+      var step = steps[si];
+      var row  = document.createElement('div');
       row.className = 'turn-step';
       var ico = document.createElement('div');
       ico.className = 'turn-icon';
@@ -370,19 +320,19 @@ function requestRoute(destName, destLat, destLng, statusEl, fallbackEl, btnEl) {
       row.appendChild(ico);
       row.appendChild(txt);
       stepsEl.appendChild(row);
-    });
+    }
 
     document.getElementById('turn-panel').classList.add('open');
     map.closePopup();
-    map.fitBounds(route.bounds, { padding: [30, 30], paddingBottomRight: [30, 240] });
+    map.fitBounds(route.bounds, { padding: [30, 30] });
   });
 
-  activeRoute.on('routingerror', function() {
-    map.removeControl(activeRoute);
+  activeRoute.on('routingerror', function () {
+    try { map.removeControl(activeRoute); } catch (e) { /* ignore */ }
     activeRoute = null;
     btnEl.disabled = false;
-    btnEl.textContent = '🗺 Get Directions';
-    statusEl.textContent = '⚠️ No in-map route found. Open in external maps:';
+    btnEl.textContent = 'Get Directions';
+    statusEl.textContent = '\u26A0\uFE0F No in-map route found. Try external maps:';
     statusEl.className = 'route-status error';
     fallbackEl.querySelector('.btn-apple').href =
       'maps://maps.apple.com/?saddr=' + userLat + ',' + userLng +
@@ -396,69 +346,88 @@ function requestRoute(destName, destLat, destLng, statusEl, fallbackEl, btnEl) {
 
 /* ══════════════════════════════════════════════════════════════════
    MARKERS
+   FIX 7: replaced forEach with a for loop + IIFE — forEach with
+   closures behaves differently across browser JS engines when the
+   outer variable (p) is captured. The IIFE pattern is universally
+   safe across Chrome, Safari, Firefox, and Edge.
+
+   FIX 8: cloneNode to replace the button on every popupopen.
+   Chrome fires ALL stacked addEventListener handlers; Safari only
+   fires the last one. Without this, each time the popup is
+   reopened Chrome fires multiple simultaneous route requests.
+   Replacing the node with a clone wipes all prior listeners,
+   guaranteeing exactly one handler no matter how often it opens.
 ══════════════════════════════════════════════════════════════════ */
-var typeEmoji = { beach: '🏖', ferry: '⛴', gas: '⛽', hector: '🧌' };
+var typeEmojiHtml = { beach: '&#127958;', ferry: '&#9972;&#65039;', gas: '&#9981;', hector: '&#129548;' };
 
-locations.forEach(function(p) {
-  var emoji = typeEmoji[p.type] || '📍';
-  var icon = L.divIcon({
-    html: '<div style="font-size:24px;line-height:1;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.6));">' + emoji + '</div>',
-    className: '', iconSize: [28,28], iconAnchor: [14,28]
-  });
+for (var mi = 0; mi < locations.length; mi++) {
+  (function (p) {
+    var emojiHtml = typeEmojiHtml[p.type] || '&#128205;';
 
-  var imgHtml = p.img
-    ? '<img class="popup-img" src="' + p.img + '" onerror="this.style.display=\'none\'" alt="">'
-    : '';
-
-  var popup =
-    imgHtml +
-    '<div class="popup-body">' +
-      '<div class="popup-title">' + p.name + '</div>' +
-      '<div class="popup-desc">'  + p.desc  + '</div>' +
-      '<button class="btn-directions">🗺 Get Directions</button>' +
-      '<div class="route-status"></div>' +
-      '<div class="fallback-row">' +
-        '<a class="btn-fallback btn-apple"  href="#" target="_blank">🍎 Apple Maps</a>' +
-        '<a class="btn-fallback btn-google" href="#" target="_blank">🗺 Google Maps</a>' +
-      '</div>' +
-    '</div>';
-
-  var marker = L.marker([p.lat, p.lng], { icon: icon })
-    .bindPopup(popup, { maxWidth: 310, minWidth: 250 });
-
-  marker.on('popupopen', function(e) {
-    var el         = e.popup.getElement();
-    var btn        = el.querySelector('.btn-directions');
-    var statusEl   = el.querySelector('.route-status');
-    var fallbackEl = el.querySelector('.fallback-row');
-
-    btn.disabled = false;
-    btn.textContent = '🗺 Get Directions';
-    statusEl.textContent = '';
-    statusEl.className = 'route-status';
-    fallbackEl.classList.remove('visible');
-
-    btn.addEventListener('click', function() {
-      requestRoute(p.name, p.lat, p.lng, statusEl, fallbackEl, btn);
+    var markerIcon = L.divIcon({
+      html: '<div style="font-size:24px;line-height:1;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.6));">' + emojiHtml + '</div>',
+      className: '', iconSize: [28, 28], iconAnchor: [14, 28]
     });
-  });
 
-  marker.addTo(map);
-});
+    var imgHtml = p.img
+      ? '<img class="popup-img" src="' + p.img + '" onerror="this.style.display=\'none\'" alt="">'
+      : '';
+
+    var popupHtml =
+      imgHtml +
+      '<div class="popup-body">' +
+        '<div class="popup-title">' + p.name + '</div>' +
+        '<div class="popup-desc">'  + p.desc  + '</div>' +
+        '<button class="btn-directions">Get Directions</button>' +
+        '<div class="route-status"></div>' +
+        '<div class="fallback-row">' +
+          '<a class="btn-fallback btn-apple"  href="#" target="_blank">&#127822; Apple Maps</a>' +
+          '<a class="btn-fallback btn-google" href="#" target="_blank">&#128506;&#65039; Google Maps</a>' +
+        '</div>' +
+      '</div>';
+
+    var marker = L.marker([p.lat, p.lng], { icon: markerIcon })
+      .bindPopup(popupHtml, { maxWidth: 310, minWidth: 250 });
+
+    marker.on('popupopen', function (e) {
+      var el         = e.popup.getElement();
+      var btn        = el.querySelector('.btn-directions');
+      var statusEl   = el.querySelector('.route-status');
+      var fallbackEl = el.querySelector('.fallback-row');
+
+      // Reset visible state each open
+      statusEl.textContent = '';
+      statusEl.className = 'route-status';
+      fallbackEl.classList.remove('visible');
+
+      // Replace button with a fresh clone to strip all prior event listeners
+      var freshBtn = btn.cloneNode(true);
+      freshBtn.disabled = false;
+      freshBtn.textContent = 'Get Directions';
+      btn.parentNode.replaceChild(freshBtn, btn);
+
+      freshBtn.addEventListener('click', function () {
+        requestRoute(p.name, p.lat, p.lng, statusEl, fallbackEl, freshBtn);
+      });
+    });
+
+    marker.addTo(map);
+  })(locations[mi]);
+}
 
 /* ══════════════════════════════════════════════════════════════════
    GEOLOCATION
 ══════════════════════════════════════════════════════════════════ */
 if ('geolocation' in navigator) {
   watchId = navigator.geolocation.watchPosition(
-    function(pos) {
+    function (pos) {
       userLat = pos.coords.latitude;
       userLng = pos.coords.longitude;
       var ll  = [userLat, userLng];
 
       if (!userMarker) {
         userMarker = L.marker(ll, {
-          icon: L.divIcon({ className: 'user-dot', iconSize:[14,14], iconAnchor:[7,7] }),
+          icon: L.divIcon({ className: 'user-dot', iconSize: [14, 14], iconAnchor: [7, 7] }),
           zIndexOffset: 1000, interactive: false
         }).addTo(map);
       } else {
@@ -475,15 +444,16 @@ if ('geolocation' in navigator) {
         userAccCircle.setLatLng(ll).setRadius(acc);
       }
     },
-    function(err) { console.warn('Geolocation:', err.message); },
+    function (err) { console.warn('Geolocation:', err.message); },
     { enableHighAccuracy: true, maximumAge: 4000, timeout: 10000 }
   );
 }
 
+/* RESIZE */
 if (typeof ResizeObserver !== 'undefined') {
-  new ResizeObserver(function() { map.invalidateSize(); }).observe(document.getElementById('map'));
+  new ResizeObserver(function () { map.invalidateSize(); }).observe(document.getElementById('map'));
 } else {
-  setTimeout(function() { map.invalidateSize(); }, 300);
+  setTimeout(function () { map.invalidateSize(); }, 300);
 }
 </script>
 </body>
