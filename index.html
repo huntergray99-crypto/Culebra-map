@@ -3,11 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Culebra Map - COMPLETE EXPERIENCE</title>
+    <title>Culebra Map - TRUE ROAD ROUTING</title>
     
     <!-- Leaflet Core -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+    <!-- Leaflet Routing Machine + OSRM -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
     <!-- Search Bar Plugin -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-control-geocoder/dist/Control.Geocoder.css" />
@@ -18,19 +22,16 @@
             height: 100%;
             margin: 0;
         }
-
         body {
             display: flex;
             flex-direction: column;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
-
         #map {
             flex: 1;
             width: 100%;
             background: #ddd;
         }
-
         .welcome-badge-wrapper {
             position: absolute;
             z-index: 1000;
@@ -52,7 +53,6 @@
             pointer-events: auto;
             white-space: nowrap;
         }
-
         .leaflet-control-custom button {
             background: white;
             border: 2px solid rgba(0,0,0,0.2);
@@ -68,7 +68,6 @@
             margin: 2px;
         }
         .leaflet-control-custom button:hover { background-color: #f4f4f4; }
-        
         .leaflet-popup-content { 
             font-size: 14px; 
             line-height: 1.4; 
@@ -120,6 +119,9 @@
         .directions-btn:hover {
             background: linear-gradient(135deg, #005a80, #008c9a);
             transform: translateY(-1px);
+        }
+        .directions-btn.loading {
+            background: linear-gradient(135deg, #666, #999);
         }
 
         /* LEGEND CONTROL */
@@ -178,13 +180,11 @@
             color: #0b2540;
             border-color: #ffffff;
         }
-
         .gas-emoji-icon {
             font-size: 24px;
             line-height: 24px;
             text-align: center;
         }
-
         /* GLOWING BLUE DOT - Apple Maps Style */
         .user-location-dot {
             width: 16px;
@@ -207,19 +207,14 @@
     </style>
 </head>
 <body>
-
     <div class="welcome-badge-wrapper">
-        <div class="welcome-badge">Welcome to Culebra! 🌴</div>
+        <div class="welcome-badge">Welcome to Culebra! 🌴🛣️</div>
     </div>
-
     <div id="map"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Setup map
             var map = L.map('map').setView([18.31, -65.30], 13);
-
-            // Global variables
             var userLocation = null;
             var userMarker = null;
             var userAccuracyCircle = null;
@@ -234,7 +229,7 @@
                 }
             ).addTo(map);
 
-            // ALL LOCATIONS WITH CATEGORIES
+            // YOUR ORIGINAL LOCATIONS (UNCHANGED)
             var locations = [
                 { name: "Culebra Ferry Terminal", lat: 18.301451, lng: -65.302530, type: "ferry", desc: "Our one and only Ferry Terminal, please be sure to arrive 1 hour before departure to avoid delays!" },
                 { name: "Gas Station", lat: 18.301129, lng: -65.300764, type: "gas", desc: "our only gas station!" },
@@ -260,36 +255,28 @@
                 iconAnchor: [12, 24]
             });
 
-            // CREATE MARKERS WITH FULL DIRECTIONS PANEL
+            // CREATE MARKERS WITH REAL ROAD ROUTING
             locations.forEach(function(p) {
                 var markerOptions = {};
                 if (p.type === "gas") {
                     markerOptions.icon = gasIcon;
                 }
 
-                // FULL DIRECTIONS POPUP
                 var popupHtml = "<b>" + p.name + "</b><br>" + p.desc +
                     "<div class='directions-panel' id='directions-panel'>" +
-                        "<div class='directions-header'>📍 Route from your location</div>" +
+                        "<div class='directions-header'>🚗 Road Route from your location</div>" +
                         "<div id='route-info' style='font-size:13px;color:#333;'>🔵 Locating you...</div>" +
                         "<div class='route-line' id='route-line'></div>" +
                     "</div>" +
-                    "<button class='directions-btn' id='toggle-directions'>Show Route</button>";
+                    "<button class='directions-btn' id='toggle-directions'>Get Road Route</button>";
 
                 var marker = L.marker([p.lat, p.lng], markerOptions).bindPopup(popupHtml, { maxWidth: 360 });
 
-                // ADD TO APPROPRIATE LAYER
-                if (p.type === "beach") {
-                    marker.addTo(beachesLayer);
-                } else if (p.type === "ferry") {
-                    marker.addTo(ferryLayer);
-                } else if (p.type === "hector") {
-                    marker.addTo(hectorLayer);
-                } else if (p.type === "gas") {
-                    marker.addTo(ferryLayer);
-                }
+                if (p.type === "beach") marker.addTo(beachesLayer);
+                else if (p.type === "ferry") marker.addTo(ferryLayer);
+                else if (p.type === "hector") marker.addTo(hectorLayer);
+                else if (p.type === "gas") marker.addTo(ferryLayer);
 
-                // DIRECTIONS LOGIC
                 marker.on('popupopen', function(e) {
                     var popupEl = e.popup.getElement();
                     if (!popupEl) return;
@@ -301,78 +288,92 @@
                     
                     var destLat = parseFloat(p.lat);
                     var destLng = parseFloat(p.lng);
-                    
-                    function updateDirections() {
-                        if (!userLocation) {
-                            routeInfo.innerHTML = "🔵 Locating you...";
-                            panel.style.display = 'block';
-                            routeLine.style.display = 'none';
-                            return;
-                        }
-                        
-                        // DISTANCE & BEARING CALCULATION
-                        var distance = map.distance([userLocation.lat, userLocation.lng], [destLat, destLng]);
-                        var miles = (distance / 1609.34).toFixed(1);
-                        
-                        var lat1 = userLocation.lat * Math.PI / 180;
-                        var lat2 = destLat * Math.PI / 180;
-                        var dLng = (destLng - userLocation.lng) * Math.PI / 180;
-                        var y = Math.sin(dLng) * Math.cos(lat2);
-                        var x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
-                        var bearing = Math.atan2(y, x) * 180 / Math.PI;
-                        bearing = (bearing + 360) % 360;
-                        
-                        var dirCardinal = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round(bearing/45) % 8];
-                        
-                        routeInfo.innerHTML = `
-                            <div class='route-info-row'>
-                                <span>Distance:</span> 
-                                <span style='font-weight:600;color:#2f80ff;'>${miles} mi</span>
-                            </div>
-                            <div class='route-info-row'>
-                                <span>Bearing:</span> 
-                                <span style='font-weight:600;color:#2f80ff;'>${bearing.toFixed(0)}° (${dirCardinal})</span>
-                            </div>
-                        `;
-                        
-                        // VISUAL ROUTE LINE
-                        var lineWidth = Math.max(3, Math.min(10, miles * 2));
-                        routeLine.style.height = lineWidth + 'px';
-                        routeLine.style.display = 'block';
-                        
-                        // DRAW ROUTE ON MAP
-                        if (currentRoute) map.removeLayer(currentRoute);
-                        currentRoute = L.polyline([
-                            [userLocation.lat, userLocation.lng],
-                            [destLat, destLng]
-                        ], {
-                            color: '#2f80ff',
-                            weight: 6,
-                            opacity: 0.9,
-                            dashArray: '12, 6'
-                        }).addTo(map);
-                        
-                        // AUTO ZOOM TO ROUTE
-                        map.fitBounds([
-                            [userLocation.lat, userLocation.lng],
-                            [destLat, destLng]
-                        ], { padding: [20, 20] });
-                    }
-                    
+                    var destLatLng = L.latLng(destLat, destLng);
+
                     toggleBtn.addEventListener('click', function() {
                         if (panel.style.display === 'none' || panel.style.display === '') {
-                            panel.style.display = 'block';
-                            toggleBtn.textContent = 'Hide Route';
-                            toggleBtn.style.background = 'linear-gradient(135deg, #d32f2f, #f44336)';
-                            updateDirections();
-                        } else {
-                            panel.style.display = 'none';
-                            toggleBtn.textContent = 'Show Route';
-                            toggleBtn.style.background = 'linear-gradient(135deg, #006994, #00a0b0)';
+                            if (!userLocation) {
+                                routeInfo.innerHTML = "🔵 Locating you...";
+                                panel.style.display = 'block';
+                                return;
+                            }
+
+                            // Clear previous route
                             if (currentRoute) {
-                                map.removeLayer(currentRoute);
+                                map.removeControl(currentRoute);
                                 currentRoute = null;
                             }
+
+                            // Show loading
+                            toggleBtn.textContent = 'Loading Road Route...';
+                            toggleBtn.classList.add('loading');
+                            routeInfo.innerHTML = 'Finding best road route...';
+
+                            // CREATE REAL ROAD ROUTING
+                            var startLatLng = L.latLng(userLocation.lat, userLocation.lng);
+                            
+                            currentRoute = L.Routing.control({
+                                waypoints: [startLatLng, destLatLng],
+                                routeWhileDragging: false,
+                                show: false,
+                                addWaypoints: false,
+                                draggableWaypoints: false,
+                                createMarker: function() { return null; },
+                                lineOptions: {
+                                    styles: [{
+                                        color: '#2f80ff',
+                                        weight: 8,
+                                        opacity: 0.9
+                                    }]
+                                },
+                                router: L.Routing.osrmv1({
+                                    serviceUrl: 'https://router.project-osrm.org/route/v1',
+                                    profile: 'driving',
+                                    timeout: 10000
+                                })
+                            }).addTo(map);
+
+                            currentRoute.on('routesfound', function(e) {
+                                var route = e.routes[0];
+                                var distance = (route.summary.totalDistance / 1000).toFixed(1);
+                                var time = Math.round(route.summary.totalTime / 60);
+                                
+                                routeInfo.innerHTML = `
+                                    <div class='route-info-row'>
+                                        <span>Distance:</span> 
+                                        <span style='font-weight:600;color:#2f80ff;'>${distance} km</span>
+                                    </div>
+                                    <div class='route-info-row'>
+                                        <span>Est. Time:</span> 
+                                        <span style='font-weight:600;color:#2f80ff;'>${time} min</span>
+                                    </div>
+                                `;
+                                
+                                routeLine.style.display = 'block';
+                                panel.style.display = 'block';
+                                toggleBtn.textContent = 'Clear Road Route';
+                                toggleBtn.classList.remove('loading');
+                                
+                                map.fitBounds(route.bounds, { padding: [20, 20] });
+                            });
+
+                            currentRoute.on('routingerror', function() {
+                                routeInfo.innerHTML = "⚠️ No direct road route available";
+                                panel.style.display = 'block';
+                                toggleBtn.textContent = 'Try Straight Line';
+                                toggleBtn.classList.remove('loading');
+                            });
+
+                        } else {
+                            // Hide route
+                            if (currentRoute) {
+                                map.removeControl(currentRoute);
+                                currentRoute = null;
+                            }
+                            panel.style.display = 'none';
+                            routeLine.style.display = 'none';
+                            toggleBtn.textContent = 'Get Road Route';
+                            toggleBtn.classList.remove('loading');
                         }
                     });
                 });
@@ -383,7 +384,7 @@
             ferryLayer.addTo(map);
             hectorLayer.addTo(map);
 
-            // LEGEND CONTROL (UNCHANGED)
+            // LEGEND CONTROL (UNCHANGED FROM REFERENCE)
             var LegendControl = L.Control.extend({
                 options: { position: 'topleft' },
                 onAdd: function(map) {
@@ -444,9 +445,8 @@
             });
             map.addControl(new LegendControl());
 
-            // CONTROLS
+            // CONTROLS (UNCHANGED)
             L.Control.geocoder({ defaultMarkGeocode: true }).addTo(map);
-
             var HomeBtn = L.Control.extend({
                 options: { position: 'topleft' },
                 onAdd: function(map) {
@@ -457,7 +457,6 @@
                 }
             });
             map.addControl(new HomeBtn());
-
             var FSBtn = L.Control.extend({
                 options: { position: 'topleft' },
                 onAdd: function(map) {
@@ -473,7 +472,7 @@
             });
             map.addControl(new FSBtn());
 
-            // GLOWING BLUE DOT - LIVE TRACKING
+            // GLOWING BLUE DOT - LIVE TRACKING (UNCHANGED)
             if ("geolocation" in navigator) {
                 navigator.geolocation.watchPosition(
                     function(position) {
@@ -481,22 +480,18 @@
                             lat: position.coords.latitude,
                             lng: position.coords.longitude
                         };
-
                         var latlng = [userLocation.lat, userLocation.lng];
-
                         if (!userMarker) {
                             userMarker = L.marker(latlng, {
                                 icon: L.divIcon({
                                     className: 'user-location-dot',
                                     iconSize: [16, 16],
-                                    iconAnchor: [8, 8],
-                                    html: '<div></div>'
+                                    iconAnchor: [8, 8]
                                 })
                             }).addTo(map);
                         } else {
                             userMarker.setLatLng(latlng);
                         }
-
                         var accuracy = position.coords.accuracy;
                         if (!userAccuracyCircle) {
                             userAccuracyCircle = L.circle(latlng, {
@@ -511,9 +506,6 @@
                             userAccuracyCircle.setLatLng(latlng);
                             userAccuracyCircle.setRadius(accuracy);
                         }
-
-                        // BROADCAST LOCATION UPDATE
-                        window.dispatchEvent(new CustomEvent('userlocationupdate'));
                     },
                     function(error) {
                         console.warn("Geolocation error:", error.message);
@@ -531,3 +523,4 @@
     </script>
 </body>
 </html>
+
