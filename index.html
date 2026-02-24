@@ -58,62 +58,100 @@
                 }
             ).addTo(map);
 
+            // Locations with category type for legend/layer toggles
             var locations = [
                 { 
                     name: "Culebra Ferry Terminal", 
                     lat: 18.301451, 
                     lng: -65.302530, 
+                    type: "ferry",
                     desc: "Our one and only Ferry Terminal, please be sure to arrive 1 hour before departure to avoid delays!",
                 },
                 { 
                     name: "Isla Culebrita", 
                     lat: 18.318654, 
                     lng: -65.227238, 
+                    type: "beach",
                     desc: "<img src='https://upload.wikimedia.org/wikipedia/commons/3/3f/Culebrita_Island%2C_Culebra_Island%2C_Puerto_Rico.jpg' style='width:100%;border-radius:8px;margin-bottom:8px;'><br>Welcome to Culebrita! The Caribbean's last true virgin island! From Army tanks situated in the brush, to the historic lighthouse in the middle of the island, the natural jacuzzi's on the northeast point of the island, snorkeling the reefs with turtles and rays, this is sure to be an unforgettable experience!!! Located a short 15 minute boat ride from the main island of Culebra, Culebrita offers stunning views of Saint Thomas, nearby Cayo Norte, and of course, Culebra and it's Playa Larga. Think about it, a 5 hour adventure on an unhabitated island for $60 per person!!! <br><br><b>PRO TIP:</b> Order groceries to be delivered to your water taxi before your excursion from <a href='https://www.shopculebra.com' target='_blank'>www.shopculebra.com</a>. <br><br>Book your trip today with <a href='https://www.gammyswatertours.com' target='_blank'>Gammy's Water Tours</a>!" 
                 },
                 { 
                     name: "Punta Soldado", 
                     lat: 18.281876, 
                     lng: -65.286575, 
+                    type: "beach",
                     desc: "<img src='./soldado.jpg' style='width:100%;border-radius:8px;margin-bottom:8px;'><br>Our southernmost beach, offering stunning sunset views, Vieques, and sometimes you can see Saint Croix in the distance! Make sure you have a Jeep, Bronco, or E-Bike! Golf Carts are strictly prohibited here as the road leading down to the beach is steep, rocky and unpaved. If you go with an E-Bike, make sure to grab one from <a href='https://www.todoculebra.com' target='_blank'>www.todoculebra.com</a>" 
                 },
                 { 
                     name: "Playa Datiles", 
                     lat: 18.296597, 
                     lng: -65.300179, 
+                    type: "beach",
                     desc: "Most romantic beach in the Caribbean! Stellar views of Cayo Luis Peña, Vieques, and El Yunque on the main Island!<br><br>Make sure to rent a Jeep, a Bronco, or an E-Bike, as the terrain is unpaved, steep, has ruts and requires 4x4 or a capable E-Bike/E-Moped, such as those from <a href='https://www.todoculebra.com' target='_blank'>www.todoculebra.com</a>." 
                 },
                 { 
                     name: "Playa Melones", 
                     lat: 18.303469, 
                     lng: -65.310197, 
+                    type: "beach",
                     desc: "Marine reserve reef snorkeling (fish everywhere!), turtles, rays, island views.<br><br><a href='https://bluewatercharters.com' target='_blank'>bluewatercharters.com</a>" 
                 },
                 { 
                     name: "Playa Zoni", 
                     lat: 18.319636, 
                     lng: -65.254862, 
+                    type: "beach",
                     desc: "A beautiful 15 minute drive from town, offering stunning views of Culebrita, Cayo Norte, and even Saint Thomas!! Beautiful walking beach with a wonderful secluded vibe." 
                 },
                 { 
                     name: "Playa Flamenco", 
                     lat: 18.331667, 
                     lng: -65.318056, 
+                    type: "beach",
                     desc: "Consistently voted one of the world's best beaches, WW2 tanks, white sands, crystal clear water, this is the premier Culebra destination" 
                 },
                 { 
                     name: "Hector El Protector", 
                     lat: 18.300682, 
                     lng: -65.302170, 
+                    type: "hector",
                     desc: "<img src='https://www.discoverpuertorico.com/sites/default/files/listing_images/profile/8059/Hector-El-Protector_69BCB335-5056-A36A-080F2CD5E9C0A166-69bcb26d5056a36_69bcb61d-5056-a36a-0867dfd14ace9c20.jpg' style='width:100%; border-radius:5px; margin-bottom:8px;'><br>Hector the Protector, our beloved guardian, protector of the island, and bringer of safe passage for those coming or going. Constructed in 2014 by Thomas Dambo, and reconstructed by locals in 2017 after Hurricane Maria, this is his 4th troll, his most famous include those in Seattle, and Amsterdam. Visit Hector today!" 
                 }
             ];
 
-            // Add Pins with wider popup settings
+            // --- CATEGORY LAYERS ---
+            var beachesLayer = L.layerGroup();
+            var ferryLayer   = L.layerGroup();
+            var hectorLayer  = L.layerGroup();
+
+            // Create markers and add them to the appropriate group
             locations.forEach(function(p) {
-                L.marker([p.lat, p.lng]).addTo(map)
-                    .bindPopup("<b>" + p.name + "</b><br>" + p.desc, { maxWidth: 320 });
+                var marker = L.marker([p.lat, p.lng]).bindPopup(
+                    "<b>" + p.name + "</b><br>" + p.desc,
+                    { maxWidth: 320 }
+                );
+
+                if (p.type === "beach") {
+                    marker.addTo(beachesLayer);
+                } else if (p.type === "ferry") {
+                    marker.addTo(ferryLayer);
+                } else if (p.type === "hector") {
+                    marker.addTo(hectorLayer);
+                }
             });
+
+            // Add all layers to the map by default
+            beachesLayer.addTo(map);
+            ferryLayer.addTo(map);
+            hectorLayer.addTo(map);
+
+            // Legend / layer toggle on the left
+            var overlays = {
+                "Beaches": beachesLayer,
+                "Ferry Terminal": ferryLayer,
+                "Hector El Protector": hectorLayer
+            };
+
+            L.control.layers(null, overlays, { position: "topleft", collapsed: false }).addTo(map);
 
             // 1. SEARCH BAR
             L.Control.geocoder({ defaultMarkGeocode: true }).addTo(map);
