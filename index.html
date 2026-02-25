@@ -8,6 +8,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.min.css" crossorigin="anonymous"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.min.js" crossorigin="anonymous"></script>
+<!-- Leaflet Control Geocoder for search -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder@2.4.0/dist/Control.Geocoder.css" crossorigin="anonymous"/>
+<script src="https://unpkg.com/leaflet-control-geocoder@2.4.0/dist/Control.Geocoder.js" crossorigin="anonymous"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   html, body { height: 100%; margin: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
@@ -32,17 +35,46 @@
     background: #0b2240;
     border: 2px solid #1a4a7a;
     border-radius: 14px;
-    padding: 14px 16px 12px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-    min-width: 190px;
+    min-width: 200px;
+    overflow: hidden;
+    -webkit-transition: all 0.25s ease; transition: all 0.25s ease;
   }
-  #legend h3 {
-    margin: 0 0 10px 0;
+  #legend-header {
+    display: -webkit-box; display: -ms-flexbox; display: flex;
+    -webkit-box-align: center; -ms-flex-align: center; align-items: center;
+    -webkit-box-pack: justify; -ms-flex-pack: justify; justify-content: space-between;
+    padding: 12px 14px 10px;
+    cursor: pointer;
+    -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+  }
+  #legend-header h3 {
+    margin: 0;
     color: #7ecfde;
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
+  }
+  #legend-toggle-icon {
+    color: #7ecfde;
+    font-size: 14px;
+    line-height: 1;
+    -webkit-transition: -webkit-transform 0.25s; transition: transform 0.25s;
+  }
+  #legend.collapsed #legend-toggle-icon { -webkit-transform: rotate(-90deg); transform: rotate(-90deg); }
+  #legend-body {
+    padding: 0 14px 12px;
+    -webkit-transition: max-height 0.25s ease, opacity 0.2s ease, padding 0.25s ease;
+    transition: max-height 0.25s ease, opacity 0.2s ease, padding 0.25s ease;
+    max-height: 400px;
+    opacity: 1;
+    overflow: hidden;
+  }
+  #legend.collapsed #legend-body {
+    max-height: 0;
+    opacity: 0;
+    padding-bottom: 0;
   }
   .legend-btn {
     display: -webkit-box; display: -ms-flexbox; display: flex;
@@ -61,11 +93,11 @@
     text-align: left;
     -webkit-transition: background 0.15s, border-color 0.15s; transition: background 0.15s, border-color 0.15s;
   }
-  .legend-btn:last-child { margin-bottom: 0; }
+  .legend-btn:last-of-type { margin-bottom: 0; }
   .legend-btn:hover { background: rgba(255,255,255,0.13); border-color: rgba(255,255,255,0.25); }
   .legend-btn.active { background: rgba(126,207,222,0.2); border-color: #7ecfde; color: #fff; }
   .legend-btn .pin-preview {
-    width: 28px; height: 34px; flex-shrink: 0;
+    width: 26px; height: 32px; -ms-flex-negative: 0; flex-shrink: 0;
     display: -webkit-box; display: -ms-flexbox; display: flex;
     -webkit-box-align: center; -ms-flex-align: center; align-items: center;
     -webkit-box-pack: center; -ms-flex-pack: center; justify-content: center;
@@ -76,7 +108,48 @@
     color: #7ecfde;
     opacity: 0.7;
     text-align: center;
+    line-height: 1.5;
   }
+
+  /* ── SEARCH BAR (geocoder override) ── */
+  .leaflet-control-geocoder {
+    border-radius: 10px !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3) !important;
+    border: none !important;
+  }
+  .leaflet-control-geocoder-form input {
+    border-radius: 10px !important;
+    font-size: 13px !important;
+    padding: 6px 10px !important;
+    width: 220px !important;
+    border: none !important;
+    outline: none !important;
+  }
+  .leaflet-control-geocoder-icon {
+    border-radius: 10px !important;
+    width: 34px !important;
+    height: 34px !important;
+  }
+
+  /* ── FULLSCREEN BUTTON ── */
+  #btn-fullscreen {
+    position: absolute;
+    top: 60px;
+    right: 10px;
+    z-index: 1001;
+    background: white;
+    border: 2px solid rgba(0,0,0,0.2);
+    border-radius: 4px;
+    width: 34px; height: 34px;
+    cursor: pointer;
+    font-size: 16px;
+    display: -webkit-box; display: -ms-flexbox; display: flex;
+    -webkit-box-align: center; -ms-flex-align: center; align-items: center;
+    -webkit-box-pack: center; -ms-flex-pack: center; justify-content: center;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.3);
+    -webkit-transition: background 0.15s; transition: background 0.15s;
+  }
+  #btn-fullscreen:hover { background: #f4f4f4; }
 
   /* ── POPUP ── */
   .leaflet-popup-content-wrapper { background: #fff; border-radius: 14px; box-shadow: 0 6px 24px rgba(0,0,0,0.22); padding: 0; overflow: hidden; border: none; }
@@ -152,46 +225,50 @@
 <div class="welcome-badge">Welcome to Culebra! &#127796; Tap any marker for directions</div>
 <div id="map"></div>
 
+<!-- FULLSCREEN BUTTON -->
+<button id="btn-fullscreen" title="Toggle fullscreen" onclick="toggleFullscreen()">&#x26F6;</button>
+
 <!-- LEGEND -->
 <div id="legend">
-  <h3>&#128506; Filter Map</h3>
-  <button class="legend-btn" id="btn-filter-beach" onclick="filterMarkers('beach')">
-    <span class="pin-preview">
-      <svg width="24" height="30" viewBox="0 0 24 30" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 0C7.03 0 3 4.03 3 9c0 7 9 21 9 21s9-14 9-21c0-4.97-4.03-9-9-9z" fill="#00b4d8" stroke="#fff" stroke-width="1.5"/>
-        <text x="12" y="14" text-anchor="middle" font-size="10" fill="#fff">&#127958;</text>
-      </svg>
-    </span>
-    Beaches
-  </button>
-  <button class="legend-btn" id="btn-filter-ferry" onclick="filterMarkers('ferry')">
-    <span class="pin-preview">
-      <svg width="24" height="30" viewBox="0 0 24 30" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 0C7.03 0 3 4.03 3 9c0 7 9 21 9 21s9-14 9-21c0-4.97-4.03-9-9-9z" fill="#2563eb" stroke="#fff" stroke-width="1.5"/>
-        <text x="12" y="14" text-anchor="middle" font-size="10" fill="#fff">&#9972;</text>
-      </svg>
-    </span>
-    Ferry Terminal
-  </button>
-  <button class="legend-btn" id="btn-filter-hector" onclick="filterMarkers('hector')">
-    <span class="pin-preview">
-      <svg width="24" height="30" viewBox="0 0 24 30" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 0C7.03 0 3 4.03 3 9c0 7 9 21 9 21s9-14 9-21c0-4.97-4.03-9-9-9z" fill="#7c3aed" stroke="#fff" stroke-width="1.5"/>
-        <text x="12" y="14" text-anchor="middle" font-size="10" fill="#fff">&#129548;</text>
-      </svg>
-    </span>
-    Hector El Protector
-  </button>
-  <button class="legend-btn" id="btn-filter-gas" onclick="filterMarkers('gas')">
-    <span class="pin-preview">
-      <svg width="24" height="30" viewBox="0 0 24 30" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 0C7.03 0 3 4.03 3 9c0 7 9 21 9 21s9-14 9-21c0-4.97-4.03-9-9-9z" fill="#ea580c" stroke="#fff" stroke-width="1.5"/>
-        <text x="12" y="14" text-anchor="middle" font-size="10" fill="#fff">&#9981;</text>
-      </svg>
-    </span>
-    Gas Station
-  </button>
-  <div class="legend-hint">Tap a filter to show only that type.<br>Tap again or click the map to reset.</div>
+  <div id="legend-header" onclick="toggleLegend()">
+    <h3>&#128506;&#65039; Filter Map</h3>
+    <span id="legend-toggle-icon">&#9660;</span>
+  </div>
+  <div id="legend-body">
+    <button class="legend-btn" id="btn-filter-beach" onclick="filterMarkers('beach')">
+      <span class="pin-preview">
+        <svg width="22" height="28" viewBox="0 0 38 50" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 1C10.16 1 3 8.16 3 17c0 11.5 16 32 16 32S35 28.5 35 17C35 8.16 27.84 1 19 1z" fill="#00b4d8" stroke="#fff" stroke-width="2.5"/>
+        </svg>
+      </span>
+      Beaches
+    </button>
+    <button class="legend-btn" id="btn-filter-ferry" onclick="filterMarkers('ferry')">
+      <span class="pin-preview">
+        <svg width="22" height="28" viewBox="0 0 38 50" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 1C10.16 1 3 8.16 3 17c0 11.5 16 32 16 32S35 28.5 35 17C35 8.16 27.84 1 19 1z" fill="#2563eb" stroke="#fff" stroke-width="2.5"/>
+        </svg>
+      </span>
+      Ferry Terminal
+    </button>
+    <button class="legend-btn" id="btn-filter-hector" onclick="filterMarkers('hector')">
+      <span class="pin-preview">
+        <svg width="22" height="28" viewBox="0 0 38 50" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 1C10.16 1 3 8.16 3 17c0 11.5 16 32 16 32S35 28.5 35 17C35 8.16 27.84 1 19 1z" fill="#7c3aed" stroke="#fff" stroke-width="2.5"/>
+        </svg>
+      </span>
+      Hector El Protector
+    </button>
+    <button class="legend-btn" id="btn-filter-gas" onclick="filterMarkers('gas')">
+      <span class="pin-preview">
+        <svg width="22" height="28" viewBox="0 0 38 50" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 1C10.16 1 3 8.16 3 17c0 11.5 16 32 16 32S35 28.5 35 17C35 8.16 27.84 1 19 1z" fill="#ea580c" stroke="#fff" stroke-width="2.5"/>
+        </svg>
+      </span>
+      Gas Station
+    </button>
+    <div class="legend-hint">Tap a category to filter.<br>Tap again or click the map to reset.</div>
+  </div>
 </div>
 
 <!-- TURN-BY-TURN DRAWER -->
@@ -229,12 +306,12 @@ function snapToGrid(lat, lng) {
 ══════════════════════════════════════════════════════════════════ */
 var locations = [
   { name: 'Culebra Ferry Terminal', lat: 18.301451, lng: -65.302530, type: 'ferry', img: null,
-    desc: 'Our one and only ferry terminal &#8212; Please remember to arrive 1 hour before departure to avoid delays!' },
+    desc: 'Our one and only ferry terminal &#8212; arrive 1 hour before departure to avoid delays!' },
   { name: 'Gas Station', lat: 18.301129, lng: -65.300764, type: 'gas', img: null,
-    desc: 'The only gas station on the island. Closes at 7:00 pm, 3:00 pm on sundays.' },
+    desc: 'The only gas station on the island.' },
   { name: 'Isla Culebrita', lat: 18.318654, lng: -65.227238, type: 'beach',
     img: 'https://upload.wikimedia.org/wikipedia/commons/3/3f/Culebrita_Island%2C_Culebra_Island%2C_Puerto_Rico.jpg',
-    desc: 'The Caribbean\'s Last True Virgin Island &#8212; lighthouse, Natural jacuzzis, turtles &amp; rays. 15-min boat ride. Book with <a href="https://www.gammyswatertours.com" target="_blank" style="color:#006994;">Gammy\'s Water Tours</a>!' },
+    desc: 'The Caribbean\'s last true virgin island &#8212; lighthouse, natural jacuzzis, turtles &amp; rays. 15-min boat ride. Book with <a href="https://www.gammyswatertours.com" target="_blank" style="color:#006994;">Gammy\'s Water Tours</a>!' },
   { name: 'Punta Soldado', lat: 18.281876, lng: -65.286575, type: 'beach', img: './soldado.jpg',
     desc: 'Southernmost beach. Stunning sunsets &amp; views of Vieques. 4x4 or E-Bike only &#8212; golf carts strictly prohibited.' },
   { name: 'Playa Datiles', lat: 18.296597, lng: -65.300179, type: 'beach', img: null,
@@ -245,6 +322,8 @@ var locations = [
     desc: 'Beautiful 15-min drive from town. Stunning views of Culebrita, Cayo Norte &amp; Saint Thomas.' },
   { name: 'Playa Flamenco', lat: 18.331667, lng: -65.318056, type: 'beach', img: null,
     desc: 'Consistently voted one of the world\'s best beaches. WW2 tanks, white sands, crystal-clear water.' },
+  { name: 'Playa Tamarindo', lat: 18.318033, lng: -65.317453, type: 'beach', img: null,
+    desc: 'One of the most popular snorkeling beaches in the entire Caribbean. Swim with Turtles, Rays, and even some friendly nurse sharks.' },
   { name: 'Hector El Protector', lat: 18.300682, lng: -65.302170, type: 'hector',
     img: 'https://www.discoverpuertorico.com/sites/default/files/listing_images/profile/8059/Hector-El-Protector_69BCB335-5056-A36A-080F2CD5E9C0A166-69bcb26d5056a36_69bcb61d-5056-a36a-0867dfd14ace9c20.jpg',
     desc: 'Our beloved guardian troll, rebuilt by locals after Hurricane Maria. By Thomas Dambo (2014).' }
@@ -275,37 +354,77 @@ var HomeBtn = L.Control.extend({
 });
 map.addControl(new HomeBtn());
 
+/* SEARCH BAR */
+var geocoder = L.Control.geocoder({
+  defaultMarkGeocode: true,
+  position: 'topleft',
+  placeholder: 'Search Culebra...',
+  errorMessage: 'Nothing found.'
+}).addTo(map);
+
+/* ══════════════════════════════════════════════════════════════════
+   FULLSCREEN
+══════════════════════════════════════════════════════════════════ */
+function toggleFullscreen() {
+  var btn = document.getElementById('btn-fullscreen');
+  if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement) {
+    var el = document.documentElement;
+    if (el.requestFullscreen)       { el.requestFullscreen(); }
+    else if (el.webkitRequestFullscreen) { el.webkitRequestFullscreen(); }
+    else if (el.mozRequestFullScreen)    { el.mozRequestFullScreen(); }
+    btn.innerHTML = '&#x2715;';
+    btn.title = 'Exit fullscreen';
+  } else {
+    if (document.exitFullscreen)         { document.exitFullscreen(); }
+    else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+    else if (document.mozCancelFullScreen)  { document.mozCancelFullScreen(); }
+    btn.innerHTML = '&#x26F6;';
+    btn.title = 'Toggle fullscreen';
+  }
+  setTimeout(function () { map.invalidateSize(); }, 200);
+}
+
+document.addEventListener('fullscreenchange',       syncFullscreenBtn);
+document.addEventListener('webkitfullscreenchange', syncFullscreenBtn);
+document.addEventListener('mozfullscreenchange',    syncFullscreenBtn);
+function syncFullscreenBtn() {
+  var btn = document.getElementById('btn-fullscreen');
+  var inFS = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement);
+  btn.innerHTML = inFS ? '&#x2715;' : '&#x26F6;';
+  btn.title     = inFS ? 'Exit fullscreen' : 'Toggle fullscreen';
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   LEGEND COLLAPSE
+══════════════════════════════════════════════════════════════════ */
+function toggleLegend() {
+  document.getElementById('legend').classList.toggle('collapsed');
+}
+
 /* ══════════════════════════════════════════════════════════════════
    PIN SVG BUILDER
-   Each type gets a bold teardrop pin in its own color, with a
-   white border and a strong drop shadow so it pops off satellite.
 ══════════════════════════════════════════════════════════════════ */
 var pinColors = { beach: '#00b4d8', ferry: '#2563eb', gas: '#ea580c', hector: '#7c3aed' };
 var pinEmoji  = { beach: '&#127958;', ferry: '&#9972;', gas: '&#9981;', hector: '&#129548;' };
 
 function makePinIcon(type) {
   var color = pinColors[type] || '#555';
-  var emoji = pinEmoji[type] || '&#128205;';
-  /* Bold teardrop SVG: large, white-stroked, with a shadow filter */
+  var emoji = pinEmoji[type]  || '&#128205;';
   var svg =
     '<svg xmlns="http://www.w3.org/2000/svg" width="38" height="50" viewBox="0 0 38 50">' +
       '<defs>' +
-        '<filter id="sh" x="-40%" y="-20%" width="180%" height="160%">' +
+        '<filter id="sh' + type + '" x="-40%" y="-20%" width="180%" height="160%">' +
           '<feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="rgba(0,0,0,0.55)"/>' +
         '</filter>' +
       '</defs>' +
       '<path d="M19 1C10.16 1 3 8.16 3 17c0 11.5 16 32 16 32S35 28.5 35 17C35 8.16 27.84 1 19 1z"' +
-        ' fill="' + color + '" stroke="#ffffff" stroke-width="2.5" filter="url(#sh)"/>' +
-      '<circle cx="19" cy="17" r="9" fill="rgba(255,255,255,0.25)"/>' +
+        ' fill="' + color + '" stroke="#ffffff" stroke-width="2.5" filter="url(#sh' + type + ')"/>' +
+      '<circle cx="19" cy="17" r="9" fill="rgba(255,255,255,0.22)"/>' +
       '<text x="19" y="22" text-anchor="middle" font-size="13" font-family="serif">' + emoji + '</text>' +
     '</svg>';
-
   return L.divIcon({
-    html: svg,
-    className: '',
-    iconSize:   [38, 50],
-    iconAnchor: [19, 50],
-    popupAnchor:[0, -52]
+    html: svg, className: '',
+    iconSize: [38, 50], iconAnchor: [19, 50], popupAnchor: [0, -52]
   });
 }
 
@@ -318,8 +437,8 @@ var userMarker    = null;
 var userAccCircle = null;
 var activeRoute   = null;
 var watchId       = null;
-var activeFilter  = null;   // currently active legend filter ('beach', 'ferry', etc.)
-var markerObjects = [];     // { marker, type } for all destination markers
+var activeFilter  = null;
+var markerObjects = [];
 
 function clearRoute() {
   if (activeRoute) {
@@ -331,54 +450,31 @@ function clearRoute() {
 
 /* ══════════════════════════════════════════════════════════════════
    FILTER LOGIC
-   filterMarkers(type) — show only that type, hide the rest.
-   If the same type is clicked again, reset to show all.
-   Clicking the map also resets.
 ══════════════════════════════════════════════════════════════════ */
 function filterMarkers(type) {
-  /* Toggle off if same filter clicked again */
-  if (activeFilter === type) {
-    resetFilter();
-    return;
-  }
-
+  if (activeFilter === type) { resetFilter(); return; }
   activeFilter = type;
 
-  /* Update legend button states */
   var btns = document.querySelectorAll('.legend-btn');
   for (var bi = 0; bi < btns.length; bi++) { btns[bi].classList.remove('active'); }
-  var activeBtn = document.getElementById('btn-filter-' + type);
-  if (activeBtn) { activeBtn.classList.add('active'); }
+  var ab = document.getElementById('btn-filter-' + type);
+  if (ab) { ab.classList.add('active'); }
 
-  /* Show/hide markers */
   for (var mi = 0; mi < markerObjects.length; mi++) {
-    if (markerObjects[mi].type === type) {
-      markerObjects[mi].marker.addTo(map);
-    } else {
-      map.removeLayer(markerObjects[mi].marker);
-    }
+    if (markerObjects[mi].type === type) { markerObjects[mi].marker.addTo(map); }
+    else { map.removeLayer(markerObjects[mi].marker); }
   }
-
   map.closePopup();
 }
 
 function resetFilter() {
   activeFilter = null;
-
-  /* Clear all active states */
   var btns = document.querySelectorAll('.legend-btn');
   for (var bi = 0; bi < btns.length; bi++) { btns[bi].classList.remove('active'); }
-
-  /* Show all markers */
-  for (var mi = 0; mi < markerObjects.length; mi++) {
-    markerObjects[mi].marker.addTo(map);
-  }
+  for (var mi = 0; mi < markerObjects.length; mi++) { markerObjects[mi].marker.addTo(map); }
 }
 
-/* Click on map background resets filter */
-map.on('click', function () {
-  if (activeFilter) { resetFilter(); }
-});
+map.on('click', function () { if (activeFilter) { resetFilter(); } });
 
 /* ══════════════════════════════════════════════════════════════════
    HELPERS
@@ -506,7 +602,7 @@ function requestRoute(destName, destLat, destLng, statusEl, fallbackEl, btnEl) {
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   MARKERS — bold SVG pins, popupopen wiring, filter registration
+   MARKERS
 ══════════════════════════════════════════════════════════════════ */
 for (var mi = 0; mi < locations.length; mi++) {
   (function (p) {
@@ -532,7 +628,6 @@ for (var mi = 0; mi < locations.length; mi++) {
     var marker = L.marker([p.lat, p.lng], { icon: icon })
       .bindPopup(popupHtml, { maxWidth: 310, minWidth: 250 });
 
-    /* Register in filter list */
     markerObjects.push({ marker: marker, type: p.type });
 
     marker.on('popupopen', function (e) {
@@ -545,7 +640,6 @@ for (var mi = 0; mi < locations.length; mi++) {
       statusEl.className = 'route-status';
       fallbackEl.classList.remove('visible');
 
-      /* Clone button to wipe stacked listeners (Chrome fix) */
       var freshBtn = btn.cloneNode(true);
       freshBtn.disabled = false;
       freshBtn.textContent = 'Get Directions';
