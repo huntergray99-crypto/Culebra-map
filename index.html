@@ -307,6 +307,8 @@ function snapToGrid(lat, lng) {
 var locations = [
   { name: 'Culebra Ferry Terminal', lat: 18.301451, lng: -65.302530, type: 'ferry', img: null,
     desc: 'Our one and only ferry terminal &#8212; arrive 1 hour before departure to avoid delays!' },
+  { name: 'Ceiba Ferry Terminal', lat: 18.228669, lng: -65.619310, type: 'ferry', img: null,
+    desc: 'Mainland ferry terminal in Ceiba &#8212; your gateway to Culebra. Check schedules at prtcferry.com before you go!' },
   { name: 'Gas Station', lat: 18.301129, lng: -65.300764, type: 'gas', img: null,
     desc: 'The only gas station on the island.' },
   { name: 'Isla Culebrita', lat: 18.318654, lng: -65.227238, type: 'beach',
@@ -653,6 +655,55 @@ for (var mi = 0; mi < locations.length; mi++) {
     marker.addTo(map);
   })(locations[mi]);
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   FERRY ROUTE LINE
+   Draws a curved line from Ceiba Ferry Terminal → mid-ocean curve
+   point → Culebra Ferry Terminal, representing the ferry crossing.
+   Built with interpolated great-circle points so it renders as a
+   smooth arc rather than a straight line.
+══════════════════════════════════════════════════════════════════ */
+(function () {
+  /* Three anchor points that define the route */
+  var ceiba   = [18.228669, -65.619310];  /* Ceiba terminal    */
+  var midPt   = [18.207825, -65.614052];  /* requested curve pt */
+  var culebra = [18.301451, -65.302530];  /* Culebra terminal  */
+
+  /* Build a smooth curve by interpolating quadratic bezier through
+     ceiba -> midPt -> culebra with 60 steps                       */
+  function bezier(p0, p1, p2, steps) {
+    var pts = [];
+    for (var i = 0; i <= steps; i++) {
+      var t  = i / steps;
+      var t1 = 1 - t;
+      var lat = t1*t1*p0[0] + 2*t1*t*p1[0] + t*t*p2[0];
+      var lng = t1*t1*p0[1] + 2*t1*t*p1[1] + t*t*p2[1];
+      pts.push([lat, lng]);
+    }
+    return pts;
+  }
+
+  var routePts = bezier(ceiba, midPt, culebra, 80);
+
+  /* White halo under the line so it pops on satellite */
+  L.polyline(routePts, {
+    color: '#ffffff',
+    weight: 6,
+    opacity: 0.4,
+    smoothFactor: 1,
+    interactive: false
+  }).addTo(map);
+
+  /* Main ferry route line — dashed nautical blue */
+  L.polyline(routePts, {
+    color: '#2563eb',
+    weight: 3,
+    opacity: 0.9,
+    dashArray: '10, 8',
+    smoothFactor: 1,
+    interactive: false
+  }).addTo(map);
+})();
 
 /* ══════════════════════════════════════════════════════════════════
    GEOLOCATION
