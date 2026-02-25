@@ -8,9 +8,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.min.css" crossorigin="anonymous"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.min.js" crossorigin="anonymous"></script>
-<!-- Leaflet Control Geocoder for search -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder@2.4.0/dist/Control.Geocoder.css" crossorigin="anonymous"/>
-<script src="https://unpkg.com/leaflet-control-geocoder@2.4.0/dist/Control.Geocoder.js" crossorigin="anonymous"></script>
+
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   html, body { height: 100%; margin: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
@@ -111,7 +109,7 @@
     line-height: 1.5;
   }
 
-  /* ── SEARCH BAR (geocoder override) ── */
+  /* ── SEARCH BAR ── */
   .leaflet-control-geocoder {
     border-radius: 10px !important;
     box-shadow: 0 2px 10px rgba(0,0,0,0.3) !important;
@@ -130,6 +128,59 @@
     width: 34px !important;
     height: 34px !important;
   }
+
+  /* ── BUILT-IN SEARCH (fallback, always works) ── */
+  #search-wrap {
+    position: absolute;
+    top: 10px;
+    left: 50px;
+    z-index: 1001;
+    display: -webkit-box; display: -ms-flexbox; display: flex;
+    -webkit-box-align: center; -ms-flex-align: center; align-items: center;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    overflow: visible;
+  }
+  #search-input {
+    border: none; outline: none;
+    padding: 8px 12px;
+    font-size: 13px;
+    width: 220px;
+    border-radius: 10px 0 0 10px;
+    background: #fff;
+    color: #222;
+  }
+  #search-btn {
+    background: linear-gradient(135deg, #006994, #00a0b0);
+    border: none; color: #fff;
+    padding: 8px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 0 10px 10px 0;
+    -webkit-transition: opacity 0.15s; transition: opacity 0.15s;
+  }
+  #search-btn:hover { opacity: 0.85; }
+  #search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    overflow: hidden;
+    display: none;
+  }
+  .search-result-item {
+    padding: 9px 14px;
+    font-size: 13px;
+    color: #222;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .search-result-item:last-child { border-bottom: none; }
+  .search-result-item:hover { background: #f0f8ff; color: #006994; }
 
   /* ── FULLSCREEN BUTTON ── */
   #btn-fullscreen {
@@ -223,6 +274,13 @@
 <body>
 
 <div class="welcome-badge">Welcome to Culebra! &#127796; Tap any marker for directions</div>
+
+<!-- BUILT-IN LOCATION SEARCH -->
+<div id="search-wrap">
+  <input id="search-input" type="text" placeholder="Search locations..." autocomplete="off" oninput="liveSearch(this.value)" onkeydown="if(event.key==='Enter')doSearch()"/>
+  <button id="search-btn" onclick="doSearch()">&#128269;</button>
+  <div id="search-results"></div>
+</div>
 <div id="map"></div>
 
 <!-- FULLSCREEN BUTTON -->
@@ -308,7 +366,7 @@ var locations = [
   { name: 'Culebra Ferry Terminal', lat: 18.301451, lng: -65.302530, type: 'ferry', img: null,
     desc: 'Our one and only ferry terminal &#8212; arrive 1 hour before departure to avoid delays!' },
   { name: 'Ceiba Ferry Terminal', lat: 18.228669, lng: -65.619310, type: 'ferry', img: null,
-    desc: 'Mainland ferry terminal in Ceiba &#8212; your gateway to Culebra. Check schedules at prtcferry.com before you go!' },
+    desc: 'Mainland ferry terminal in Ceiba &#8212; your gateway to Culebra. <a href="https://www.puertoricoferry.com/en/" target="_blank" style="color:#006994;">Check schedules &amp; book tickets</a> before you go!' },
   { name: 'Gas Station', lat: 18.301129, lng: -65.300764, type: 'gas', img: null,
     desc: 'The only gas station on the island.' },
   { name: 'Isla Culebrita', lat: 18.318654, lng: -65.227238, type: 'beach',
@@ -356,13 +414,7 @@ var HomeBtn = L.Control.extend({
 });
 map.addControl(new HomeBtn());
 
-/* SEARCH BAR */
-var geocoder = L.Control.geocoder({
-  defaultMarkGeocode: true,
-  position: 'topleft',
-  placeholder: 'Search Culebra...',
-  errorMessage: 'Nothing found.'
-}).addTo(map);
+/* External geocoder removed — using built-in search above instead */
 
 /* ══════════════════════════════════════════════════════════════════
    FULLSCREEN
@@ -658,52 +710,116 @@ for (var mi = 0; mi < locations.length; mi++) {
 
 /* ══════════════════════════════════════════════════════════════════
    FERRY ROUTE LINE
-   Draws a curved line from Ceiba Ferry Terminal → mid-ocean curve
-   point → Culebra Ferry Terminal, representing the ferry crossing.
-   Built with interpolated great-circle points so it renders as a
-   smooth arc rather than a straight line.
+   Segment 1: Ceiba terminal → apex point (18.205370, -65.615147)
+              rendered as a gentle curve so the line swings around
+              the harbour mouth and stays over open water.
+   Segment 2: apex → Culebra terminal, straight east over ocean.
 ══════════════════════════════════════════════════════════════════ */
 (function () {
-  /* Three anchor points that define the route */
-  var ceiba   = [18.228669, -65.619310];  /* Ceiba terminal    */
-  var midPt   = [18.207825, -65.614052];  /* requested curve pt */
-  var culebra = [18.301451, -65.302530];  /* Culebra terminal  */
 
-  /* Build a smooth curve by interpolating quadratic bezier through
-     ceiba -> midPt -> culebra with 60 steps                       */
-  function bezier(p0, p1, p2, steps) {
+  var ceiba   = [18.228669, -65.619310];  /* Ceiba terminal                  */
+  var apex    = [18.205370, -65.615147];  /* harbour-exit / curve apex       */
+  var culebra = [18.301451, -65.302530];  /* Culebra terminal                */
+
+  /* ── Segment 1: curved arc from Ceiba down to apex ──────────────
+     We use a quadratic bezier whose control point is offset slightly
+     west of the chord mid-point so the line bows outward into open
+     water rather than cutting across any land.                      */
+  var ctrlLat = (ceiba[0] + apex[0]) / 2 - 0.004;  /* nudge south into ocean */
+  var ctrlLng = (ceiba[1] + apex[1]) / 2 - 0.006;  /* nudge west into ocean  */
+  var ctrl    = [ctrlLat, ctrlLng];
+
+  function bezier2(p0, p1, p2, steps) {
     var pts = [];
     for (var i = 0; i <= steps; i++) {
       var t  = i / steps;
-      var t1 = 1 - t;
-      var lat = t1*t1*p0[0] + 2*t1*t*p1[0] + t*t*p2[0];
-      var lng = t1*t1*p0[1] + 2*t1*t*p1[1] + t*t*p2[1];
-      pts.push([lat, lng]);
+      var u  = 1 - t;
+      pts.push([
+        u*u*p0[0] + 2*u*t*p1[0] + t*t*p2[0],
+        u*u*p0[1] + 2*u*t*p1[1] + t*t*p2[1]
+      ]);
     }
     return pts;
   }
 
-  var routePts = bezier(ceiba, midPt, culebra, 80);
+  var seg1 = bezier2(ceiba, ctrl, apex, 50);
 
-  /* White halo under the line so it pops on satellite */
-  L.polyline(routePts, {
-    color: '#ffffff',
-    weight: 6,
-    opacity: 0.4,
-    smoothFactor: 1,
-    interactive: false
-  }).addTo(map);
+  /* ── Segment 2: straight line from apex east to Culebra ─────── */
+  var seg2 = [apex, culebra];
 
-  /* Main ferry route line — dashed nautical blue */
-  L.polyline(routePts, {
-    color: '#2563eb',
-    weight: 3,
-    opacity: 0.9,
-    dashArray: '10, 8',
-    smoothFactor: 1,
-    interactive: false
-  }).addTo(map);
+  /* ── Draw both segments ────────────────────────────────────────
+     White halo first, then the coloured dashed line on top.       */
+  [seg1, seg2].forEach(function (pts) {
+    L.polyline(pts, {
+      color: '#ffffff', weight: 6, opacity: 0.4,
+      smoothFactor: 1, interactive: false
+    }).addTo(map);
+
+    L.polyline(pts, {
+      color: '#2563eb', weight: 3, opacity: 0.95,
+      dashArray: '10, 8', smoothFactor: 1, interactive: false
+    }).addTo(map);
+  });
+
 })();
+
+/* ══════════════════════════════════════════════════════════════════
+   BUILT-IN SEARCH
+   Filters over the locations array — no external CDN needed.
+   Clicking a result flies to that marker and opens its popup.
+══════════════════════════════════════════════════════════════════ */
+function liveSearch(val) {
+  var resultsEl = document.getElementById('search-results');
+  val = val.trim().toLowerCase();
+  if (!val) { resultsEl.style.display = 'none'; resultsEl.innerHTML = ''; return; }
+  var matches = [];
+  for (var si = 0; si < markerObjects.length; si++) {
+    var loc = locations[si];
+    if (loc.name.toLowerCase().indexOf(val) !== -1) {
+      matches.push({ idx: si, name: loc.name, lat: loc.lat, lng: loc.lng });
+    }
+  }
+  if (matches.length === 0) {
+    resultsEl.innerHTML = '<div class="search-result-item" style="color:#888;">No results found</div>';
+  } else {
+    resultsEl.innerHTML = '';
+    for (var mi = 0; mi < matches.length; mi++) {
+      (function(m) {
+        var div = document.createElement('div');
+        div.className = 'search-result-item';
+        div.textContent = m.name;
+        div.onclick = function () {
+          map.setView([m.lat, m.lng], 15);
+          markerObjects[m.idx].marker.openPopup();
+          document.getElementById('search-results').style.display = 'none';
+          document.getElementById('search-input').value = m.name;
+        };
+        resultsEl.appendChild(div);
+      })(matches[mi]);
+    }
+  }
+  resultsEl.style.display = 'block';
+}
+
+function doSearch() {
+  var val = document.getElementById('search-input').value.trim().toLowerCase();
+  if (!val) return;
+  for (var si = 0; si < locations.length; si++) {
+    if (locations[si].name.toLowerCase().indexOf(val) !== -1) {
+      map.setView([locations[si].lat, locations[si].lng], 15);
+      markerObjects[si].marker.openPopup();
+      document.getElementById('search-results').style.display = 'none';
+      return;
+    }
+  }
+}
+
+/* Close search results when clicking outside */
+document.addEventListener('click', function(e) {
+  if (!document.getElementById('search-wrap').contains(e.target)) {
+    document.getElementById('search-results').style.display = 'none';
+  }
+});
 
 /* ══════════════════════════════════════════════════════════════════
    GEOLOCATION
