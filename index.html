@@ -498,7 +498,8 @@ function snapToGrid(lat, lng) {
 ══════════════════════════════════════════════════════════════════ */
 var locations = [
   { name: 'Culebra Ferry Terminal', lat: 18.301451, lng: -65.302530, type: 'ferry', img: null,
-    desc: 'Our one and only ferry terminal &#8212; arrive 1 hour before departure to avoid delays!' },
+    road: 'paved', parking: true,
+    desc: 'Our one and only ferry terminal &#8212; arrive 1 hour before departure to avoid delays! Free parking for those early enough! You won\'t be able to drive down when the cargo ferry is loading or unloading, so keep that in mind!' },
   { name: 'Ceiba Ferry Terminal', lat: 18.228669, lng: -65.619310, type: 'ferry', img: null,
     desc: 'Mainland ferry terminal in Ceiba &#8212; your gateway to Culebra. <a href="https://www.puertoricoferry.com/en/" target="_blank" style="color:#006994;">Check schedules &amp; book tickets</a> before you go!' },
   { name: 'Gas Station', lat: 18.301129, lng: -65.300764, type: 'gas', img: null,
@@ -506,7 +507,7 @@ var locations = [
   { name: 'Isla Culebrita', lat: 18.318654, lng: -65.227238, type: 'beach',
     img: 'https://upload.wikimedia.org/wikipedia/commons/3/3f/Culebrita_Island%2C_Culebra_Island%2C_Puerto_Rico.jpg',
     desc: 'The Caribbean\'s last true virgin island &#8212; lighthouse, natural jacuzzis, turtles &amp; rays. 15-min boat ride. Book with <a href="https://www.gammyswatertours.com" target="_blank" style="color:#006994;">Gammy\'s Water Tours</a>!' },
-  { name: 'Punta Soldado', lat: 18.281876, lng: -65.286575, type: 'beach', img: './soldado.jpg',
+  { name: 'Punta Soldado', lat: 18.281876, lng: -65.286575, type: 'beach', img: './soldado.jpg', zIndex: 1000,
     desc: 'Southernmost beach. Stunning sunsets &amp; views of Vieques. 4x4 or E-Bike only &#8212; golf carts strictly prohibited.' },
   { name: 'Playa Datiles', lat: 18.296597, lng: -65.300179, type: 'beach', img: null,
     desc: 'Most romantic beach in the Caribbean! Views of Cayo Luis Pe&ntilde;a, Vieques &amp; El Yunque. 4x4 or E-Bike required.' },
@@ -541,12 +542,9 @@ var locations = [
     desc: 'Iconic Culebra institution on the canal. Known for the frozen painkiller cocktail and grilled fish.' },
 
   /* ── GROCERY & ESSENTIALS ── */
-  { name: 'Milka\'s Supermarket', lat: 18.301000, lng: -65.301600, type: 'grocery', img: null,
+  { name: 'Colmado y Carniceria Milka', lat: 18.301716, lng: -65.300063, type: 'grocery', img: null,
     hours: '7am–9pm', road: 'paved',
     desc: 'Main grocery store on the island. Stock up on snacks, drinks, sunscreen, and basic supplies.' },
-  { name: 'Colmado El Pescador', lat: 18.300800, lng: -65.302300, type: 'grocery', img: null,
-    hours: '6am–8pm', road: 'paved',
-    desc: 'Small neighborhood colmado — great for cold drinks, quick snacks, and forgotten essentials.' },
 
   /* ── ATMs ── */
   { name: 'Banco Popular ATM', lat: 18.301300, lng: -65.301800, type: 'atm', img: null,
@@ -560,9 +558,9 @@ var locations = [
   { name: 'Flamenco Beach Parking', lat: 18.328490, lng: -65.319426, type: 'parking', img: null,
     hours: 'Sunrise–Sunset', road: 'paved',
     desc: 'Main parking area for Playa Flamenco. Can fill up fast on weekends — arrive early! Paid parking can get expensive. E-Bike parking is free! Rent your E-Bike from <a href="https://www.todoculebra.com" target="_blank" style="color:#006994;">www.todoculebra.com</a> today!' },
-  { name: 'Town Center Parking', lat: 18.301500, lng: -65.301200, type: 'parking', img: null,
-    hours: 'Always open', road: 'paved',
-    desc: 'Free street parking near the main plaza. Great starting point for walking the town.' },
+  { name: 'La Asociación Pesquera de Culebra', lat: 18.301197, lng: -65.300558, type: 'fishmarket', img: null,
+    hours: 'Open Daily', road: 'paved', parking: true,
+    desc: 'Our Commercial Fishing Village. Fresh Fish, Live Lobster, Octopus, Shark Oil, Offshore Pelagics and Deep Drop Fish. Open Daily.' },
   { name: 'Zoni Beach Parking', lat: 18.319800, lng: -65.254200, type: 'parking', img: null,
     hours: 'Sunrise–Sunset', road: '4x4',
     desc: 'Small gravel lot at the end of the road to Zoni. Limited spots — 4x4 or E-bike recommended.' },
@@ -587,16 +585,24 @@ var locations = [
     desc: 'Restrooms inside the ferry terminal building. Available to passengers and visitors.' },
 
   /* ── RENTALS ── */
-  { name: 'Jerry\'s Rentals', lat: 18.301700, lng: -65.302400, type: 'rental', img: null,
+  { name: 'Jerry\'s Rentals', lat: 18.311078, lng: -65.303957, type: 'rental', img: null,
     hours: '8am–5pm', road: 'paved',
     desc: 'Golf carts, E-bikes, and snorkel gear. Popular spot — reserve ahead during peak season.' },
   { name: 'Culebra Bike Shop', lat: 18.300600, lng: -65.302000, type: 'rental', img: null,
     hours: '8am–5pm', road: 'paved',
     desc: 'E-bikes and regular bikes for rent. Great way to explore the island sustainably — and reach beaches that ban golf carts.' },
-  { name: 'Carlos Jeep Rental', lat: 18.301400, lng: -65.302300, type: 'rental', img: null,
+  { name: 'Carlos Jeep Rental', lat: 18.310186, lng: -65.303285, type: 'rental', img: null,
     hours: '8am–4pm', road: 'paved',
     desc: '4WD jeeps and trucks for rent. Required for reaching Punta Soldado, Datiles, and other remote spots.' },
-  { name: 'Culebra Divers', lat: 18.302100, lng: -65.302600, type: 'rental', img: null,
+
+  { name: 'UTV Rental Puerto Rico', lat: 18.310959, lng: -65.304725, type: 'rental', img: null,
+    hours: '8am–5pm', road: 'paved',
+    desc: 'UTV and off-road vehicle rentals — the perfect way to tackle Culebra\'s rugged roads and reach the most remote beaches. Great for groups. Reserve ahead during peak season.' },
+
+  { name: 'Colmado Costa Del Sol', lat: 18.311344, lng: -65.305111, type: 'grocery', img: null,
+    hours: '7am–9pm', road: 'paved',
+    desc: 'Neighborhood colmado stocked with cold drinks, snacks, and daily essentials. A convenient stop before heading out to explore the island.' },
+  { name: 'Culebra Divers', lat: 18.301170, lng: -65.301953, type: 'rental', img: null,
     hours: '8am–4pm', road: 'paved',
     desc: 'PADI dive shop offering tank rentals, scuba certification, and guided dive trips to the best reefs.' },
   /* ── WATER TAXIS ── */
@@ -621,7 +627,7 @@ var locations = [
   { name: 'Flamenco Tank Trail', lat: 18.332886, lng: -65.322174, type: 'hike', img: null,
     road: 'sandy',
     desc: 'Short trail directly behind Flamenco beach with WWII tanks situated on the left side of the trail, and another in the water! A stark reminder of the history of our beach. Visit today! Pro tip: Bring beach shoes, as the sand is VERY soft and gets everywhere!!!' },
-  { name: 'Monte Resaca Trail', lat: 18.313000, lng: -65.289000, type: 'hike', img: null,
+  { name: 'Monte Resaca Trail', lat: 18.325436, lng: -65.302859, type: 'hike', img: null,
     road: '4x4',
     desc: 'Culebra\'s highest peak at 650ft. Dry tropical forest with iguanas, frigatebirds, and panoramic views. Bring water — no shade.' },
   { name: 'Punta Molino Coastal Path', lat: 18.281816, lng: -65.286433, type: 'hike', img: null,
@@ -730,13 +736,14 @@ var legendCategories = [
   { type: 'atm',       label: 'ATM',           color: '#6366f1' },
   { type: 'parking',   label: 'Parking',       color: '#64748b' },
   { type: 'restroom',  label: 'Restrooms',     color: '#0891b2' },
-  { type: 'rental',    label: 'Rentals',       color: '#d97706' },
+  { type: 'rental',    label: 'Rentals',       color: '#0d9488' },
   { type: 'villa',     label: 'Villa Rental',  color: '#0891b2' },
   { type: 'watertaxi', label: 'Water Taxi',    color: '#1d4ed8' },
   { type: 'anchor',    label: 'Anchorage',     color: '#475569' },
   { type: 'hike',      label: 'Hiking',        color: '#16a34a' },
   { type: 'grocery',   label: 'Grocery',       color: '#10b981' },
-  { type: 'hector',    label: 'Hector',        color: '#7c3aed' }
+  { type: 'hector',    label: 'Hector',        color: '#7c3aed' },
+  { type: 'fishmarket', label: 'Fish Market',   color: '#0e7490' }
 ];
 
 function buildLegend() {
@@ -783,13 +790,13 @@ var pinColors = {
   beach:'#00b4d8', ferry:'#2563eb', gas:'#ea580c', hector:'#7c3aed',
   food:'#f59e0b', grocery:'#10b981', atm:'#6366f1', parking:'#64748b',
   restroom:'#0891b2', rental:'#d97706', watertaxi:'#1d4ed8',
-  anchor:'#475569', hike:'#16a34a', villa:'#0891b2'
+  anchor:'#475569', hike:'#16a34a', villa:'#0891b2', fishmarket:'#0e7490'
 };
 var pinEmoji = {
   beach:'&#127958;', ferry:'&#9972;', gas:'&#9981;', hector:'&#129548;',
   food:'&#127860;', grocery:'&#128722;', atm:'&#127967;', parking:'&#128663;',
   restroom:'&#128701;', rental:'&#128676;', watertaxi:'&#128674;',
-  anchor:'&#9875;', hike:'&#129510;', villa:'&#127968;'
+  anchor:'&#9875;', hike:'&#129510;', villa:'&#127968;', fishmarket:'&#127997;'
 };
 var roadLabels  = { 'paved':'✅ Paved road', '4x4':'🚙 4x4 / E-Bike only', 'boat':'⛵ Boat access only', 'sandy':'⚠️ Sandy trail', 'unpaved':'⚠️ Unpaved road' };
 var roadClasses = { 'paved':'road-paved', '4x4':'road-4x4', 'boat':'road-boat', 'sandy':'road-sandy', 'unpaved':'road-sandy' };
@@ -797,7 +804,7 @@ var typeNames   = {
   beach:'Beach', ferry:'Ferry Terminal', gas:'Gas Station', hector:'Landmark',
   food:'Restaurant', grocery:'Grocery', atm:'ATM', parking:'Parking',
   restroom:'Restrooms', rental:'Rentals', watertaxi:'Water Taxi',
-  anchor:'Anchorage', hike:'Hiking', villa:'Villa Rental'
+  anchor:'Anchorage', hike:'Hiking', villa:'Villa Rental', fishmarket:'Fish Market'
 };
 
 function makePinIcon(type) {
@@ -1112,14 +1119,15 @@ for (var mi = 0; mi < locations.length; mi++) {
     var typeColor = pinColors[p.type] || '#555';
     var typeName  = typeNames[p.type]  || p.type;
     var typeTag   = '<span class="popup-type-tag" style="background:' + typeColor + '22;color:' + typeColor + '">' + typeName + '</span>';
-    var roadTag   = p.road ? '<span class="popup-road-tag ' + (roadClasses[p.road]||'') + '">' + (roadLabels[p.road]||p.road) + '</span>' : '';
+    var roadTag    = p.road ? '<span class="popup-road-tag ' + (roadClasses[p.road]||'') + '">' + (roadLabels[p.road]||p.road) + '</span>' : '';
+    var parkingTag = p.parking ? '<span class="popup-road-tag road-paved">🅿️ Parking available</span>' : '';
     var hoursHtml = p.hours ? '<div class="popup-hours"><span class="open-dot">●</span> ' + p.hours + '</div>' : '';
 
     var popupHtml =
       imgHtml +
       '<div class="popup-body">' +
         '<div class="popup-title">' + p.name + '</div>' +
-        '<div class="popup-type-row">' + typeTag + roadTag + '</div>' +
+        '<div class="popup-type-row">' + typeTag + roadTag + parkingTag + '</div>' +
         hoursHtml +
         '<div class="dist-badge" id="dist-' + mi + '">📍 calculating…</div>' +
         '<div class="popup-desc">'  + p.desc  + '</div>' +
@@ -1132,7 +1140,7 @@ for (var mi = 0; mi < locations.length; mi++) {
         '<button class="btn-share" data-lat="' + p.lat + '" data-lng="' + p.lng + '" data-name="' + p.name.replace(/"/g, '&quot;') + '">🔗 Share Location</button>' +
       '</div>';
 
-    var marker = L.marker([p.lat, p.lng], { icon: icon })
+    var marker = L.marker([p.lat, p.lng], { icon: icon, zIndexOffset: p.zIndex || 0 })
       .bindPopup(popupHtml, { maxWidth: 310, minWidth: 250 });
 
     markerObjects.push({ marker: marker, type: p.type });
