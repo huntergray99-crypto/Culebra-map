@@ -626,7 +626,7 @@ var locations = [
     desc: 'Culebra\'s highest peak at 650ft. Dry tropical forest with iguanas, frigatebirds, and panoramic views. Bring water — no shade.' },
   { name: 'Punta Molino Coastal Path', lat: 18.281816, lng: -65.286433, type: 'hike', img: null,
     road: '4x4',
-    desc: 'Remote coastal walk along the SE peninsula. Rugged terrain with incredible views and total solitude. E-bike or 4x4 to trailhead.' }
+    desc: '⚠️ EXTREMELY RUGGED TERRAIN — EXPERIENCED HIKERS ONLY!!! HIKE AT YOUR OWN RISK!!! Remote coastal walk along the SE peninsula. Rugged terrain with incredible views and total solitude. E-bike or 4x4 to trailhead.' }
 ];
 
 /* ══════════════════════════════════════════════════════════════════
@@ -903,38 +903,27 @@ function hideFerryRoute() {
 var molinoTrailLines = [];
 
 (function () {
-  var start  = [18.281816, -65.286433];  /* pin / trailhead          */
-  var mid    = [18.281996, -65.285822];  /* coast entry point        */
-  var end    = [18.277699, -65.286289];  /* southern end of trail    */
+  /* Exact coastal trail coordinates — follows the beach precisely */
+  var trailCoords = [
+    [18.281809, -65.286420],
+    [18.281981, -65.285872],
+    [18.281727, -65.285438],
+    [18.281589, -65.285124],
+    [18.281449, -65.284672],
+    [18.281241, -65.284296],
+    [18.280968, -65.283970],
+    [18.280576, -65.283694],
+    [18.280178, -65.283426],
+    [18.279786, -65.283503],
+    [18.279591, -65.283965],
+    [18.279521, -65.284496],
+    [18.279174, -65.285104]
+  ];
 
-  /* Bezier control point — nudge slightly east to follow coastline curve */
-  var ctrlLat = (mid[0] + end[0]) / 2 + 0.0005;
-  var ctrlLng = (mid[1] + end[1]) / 2 + 0.0008;
-  var ctrl    = [ctrlLat, ctrlLng];
-
-  function bezier2(p0, p1, p2, steps) {
-    var pts = [];
-    for (var i = 0; i <= steps; i++) {
-      var t = i / steps, u = 1 - t;
-      pts.push([
-        u*u*p0[0] + 2*u*t*p1[0] + t*t*p2[0],
-        u*u*p0[1] + 2*u*t*p1[1] + t*t*p2[1]
-      ]);
-    }
-    return pts;
-  }
-
-  /* Segment 1: straight connector from pin to coast */
-  var seg1 = [start, mid];
-  /* Segment 2: curved coastal trail */
-  var seg2 = bezier2(mid, ctrl, end, 60);
-
-  [seg1, seg2].forEach(function (pts) {
-    molinoTrailLines.push(
-      L.polyline(pts, { color: '#ffffff', weight: 5, opacity: 0.35, smoothFactor: 1, interactive: false }),
-      L.polyline(pts, { color: '#16a34a', weight: 3, opacity: 0.9, dashArray: '8, 6', smoothFactor: 1, interactive: false })
-    );
-  });
+  molinoTrailLines.push(
+    L.polyline(trailCoords, { color: '#ffffff', weight: 5, opacity: 0.35, smoothFactor: 1, interactive: false }),
+    L.polyline(trailCoords, { color: '#16a34a', weight: 3, opacity: 0.9, dashArray: '8, 6', smoothFactor: 1, interactive: false })
+  );
 })();
 
 function showMolinoTrail() {
