@@ -528,16 +528,16 @@ var locations = [
   { name: 'El Batey', lat: 18.305833, lng: -65.302444, type: 'food', img: null,
     hours: '11am–10pm', road: 'paved',
     desc: 'Local favorite for cold Medallas and classic Puerto Rican dishes. Casual open-air vibes right in town.' },
-  { name: 'Susie\'s Restaurant', lat: 18.300950, lng: -65.302800, type: 'food', img: null,
+  { name: 'Susie\'s Restaurant', lat: 18.312342, lng: -65.292104, type: 'food', img: null,
     hours: '8am–3pm', road: 'paved',
     desc: 'Beloved breakfast and lunch spot. Famous for their fresh fish plates and friendly service.' },
-  { name: 'Dinghy Dock Restaurant', lat: 18.302200, lng: -65.302500, type: 'food', img: null,
+  { name: 'Dinghy Dock Restaurant', lat: 18.302332, lng: -65.299312, type: 'food', img: null,
     hours: '11am–9pm', road: 'paved',
     desc: 'Right on the water with tarpon swimming below your feet. Cold drinks, fresh seafood, and unbeatable sunsets.' },
-  { name: 'Heather\'s Pizza', lat: 18.301200, lng: -65.302200, type: 'food', img: null,
+  { name: 'Heather\'s Pizza', lat: 18.301981, lng: -65.301885, type: 'food', img: null,
     hours: '5pm–10pm', road: 'paved',
     desc: 'Best pizza on the island — wood-fired with fresh toppings. Popular with locals and visitors alike.' },
-  { name: 'Mamacita\'s Restaurant & Bar', lat: 18.301600, lng: -65.302700, type: 'food', img: null,
+  { name: 'Mamacita\'s Restaurant & Bar', lat: 18.302109, lng: -65.300196, type: 'food', img: null,
     hours: '8am–10pm', road: 'paved',
     desc: 'Iconic Culebra institution on the canal. Known for the frozen painkiller cocktail and grilled fish.' },
 
@@ -547,12 +547,9 @@ var locations = [
     desc: 'Main grocery store on the island. Stock up on snacks, drinks, sunscreen, and basic supplies.' },
 
   /* ── ATMs ── */
-  { name: 'Banco Popular ATM', lat: 18.301300, lng: -65.301800, type: 'atm', img: null,
+  { name: 'Banco Popular ATM', lat: 18.300842, lng: -65.301622, type: 'atm', img: null,
     hours: '24/7', road: 'paved',
-    desc: 'One of the very few ATMs on the island. Stock up on cash — many places are cash only!' },
-  { name: 'FirstBank ATM', lat: 18.301100, lng: -65.302000, type: 'atm', img: null,
-    hours: '24/7', road: 'paved',
-    desc: 'Secondary ATM option in town. Can run out on busy weekends — grab cash early in your trip.' },
+    desc: 'One of the very few ATMs on the island. Located at 9 Cll Pedro Marquez, Culebra 00775. Stock up on cash — many places are cash only!' },
 
   /* ── PARKING ── */
   { name: 'Flamenco Beach Parking', lat: 18.328490, lng: -65.319426, type: 'parking', img: null,
@@ -588,9 +585,9 @@ var locations = [
   { name: 'Jerry\'s Rentals', lat: 18.311078, lng: -65.303957, type: 'rental', img: null,
     hours: '8am–5pm', road: 'paved',
     desc: 'Golf carts, E-bikes, and snorkel gear. Popular spot — reserve ahead during peak season.' },
-  { name: 'Culebra Bike Shop', lat: 18.300600, lng: -65.302000, type: 'rental', img: null,
+  { name: 'Todo Culebra E-Bikes', lat: 18.309638, lng: -65.303761, type: 'rental', img: null,
     hours: '8am–5pm', road: 'paved',
-    desc: 'E-bikes and regular bikes for rent. Great way to explore the island sustainably — and reach beaches that ban golf carts.' },
+    desc: 'E-bikes and regular bikes for rent. The best way to explore Culebra sustainably — and reach beaches that ban golf carts. Visit <a href="https://www.todoculebra.com" target="_blank" style="color:#006994;">www.todoculebra.com</a> to book today!' },
   { name: 'Carlos Jeep Rental', lat: 18.310186, lng: -65.303285, type: 'rental', img: null,
     hours: '8am–4pm', road: 'paved',
     desc: '4WD jeeps and trucks for rent. Required for reaching Punta Soldado, Datiles, and other remote spots.' },
@@ -606,9 +603,6 @@ var locations = [
     hours: '8am–4pm', road: 'paved',
     desc: 'PADI dive shop offering tank rentals, scuba certification, and guided dive trips to the best reefs.' },
   /* ── WATER TAXIS ── */
-  { name: 'Water Taxi Dock (Dewey)', lat: 18.302400, lng: -65.302200, type: 'watertaxi', img: null,
-    hours: '7am–5pm', road: 'paved',
-    desc: 'Main water taxi pickup spot in Dewey. Boats run to Culebrita, Luis Peña, and nearby snorkel spots. Cash only.' },
   /* ── ANCHORAGE ── */
   { name: 'Dakity Bay Anchorage', lat: 18.291000, lng: -65.267000, type: 'anchor', img: null,
     road: 'boat',
@@ -736,7 +730,7 @@ var legendCategories = [
   { type: 'atm',       label: 'ATM',           color: '#6366f1' },
   { type: 'parking',   label: 'Parking',       color: '#64748b' },
   { type: 'restroom',  label: 'Restrooms',     color: '#0891b2' },
-  { type: 'rental',    label: 'Rentals',       color: '#0d9488' },
+  { type: 'rental',    label: 'Rentals',       color: '#7c3aed' },
   { type: 'villa',     label: 'Villa Rental',  color: '#0891b2' },
   { type: 'watertaxi', label: 'Water Taxi',    color: '#1d4ed8' },
   { type: 'anchor',    label: 'Anchorage',     color: '#475569' },
@@ -789,7 +783,7 @@ document.addEventListener('click', function(e) {
 var pinColors = {
   beach:'#00b4d8', ferry:'#2563eb', gas:'#ea580c', hector:'#7c3aed',
   food:'#f59e0b', grocery:'#10b981', atm:'#6366f1', parking:'#64748b',
-  restroom:'#0891b2', rental:'#d97706', watertaxi:'#1d4ed8',
+  restroom:'#0891b2', rental:'#7c3aed', watertaxi:'#1d4ed8',
   anchor:'#475569', hike:'#16a34a', villa:'#0891b2', fishmarket:'#0e7490'
 };
 var pinEmoji = {
