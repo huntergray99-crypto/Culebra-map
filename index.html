@@ -896,7 +896,7 @@ var pinEmoji = {
   beach:'&#127958;', ferry:'&#9972;', gas:'&#9981;', hector:'&#129548;',
   food:'&#127860;', grocery:'&#128722;', atm:'&#127967;', parking:'&#128663;',
   restroom:'&#128701;', rental:'&#128676;', watertaxi:'&#128674;',
-  anchor:'&#9875;', hike:'&#129510;', villa:'&#127968;', fishmarket:'&#127997;', snorkel:'&#129300;'
+  anchor:'&#9875;', hike:'&#129510;', villa:'&#127968;', fishmarket:'&#127997;', snorkel:'🤿'
 };
 var roadLabels  = { 'paved':'✅ Paved road', '4x4':'🚙 4x4 / E-Bike only', 'boat':'⛵ Boat access only', 'sandy':'⚠️ Sandy trail', 'unpaved':'⚠️ Unpaved road', 'dirt':'🟤 Dirt road' };
 var roadClasses = { 'paved':'road-paved', '4x4':'road-4x4', 'boat':'road-boat', 'sandy':'road-sandy', 'unpaved':'road-sandy', 'dirt':'road-4x4' };
@@ -1344,7 +1344,7 @@ function liveSearch(val) {
         var emoji = pinEmoji[m.type] ? m.type : 'beach';
         var emojiChar = {'beach':'🏖️','ferry':'⛴️','gas':'⛽','hector':'🧌','food':'🍽️',
           'grocery':'🛒','atm':'🏧','parking':'🅿️','restroom':'🚻','rental':'🚤',
-          'watertaxi':'🚢','anchor':'⚓','hike':'🥾'}[m.type] || '📍';
+          'watertaxi':'🚢','anchor':'⚓','hike':'🥾','snorkel':'🤿','villa':'🏠','fishmarket':'🐟'}[m.type] || '📍';
         div.innerHTML = '<span class="sri-icon">' + emojiChar + '</span>' +
           '<span class="sri-text"><div class="sri-name">' + m.name + '</div>' +
           '<div class="sri-type">' + (typeNames[m.type]||m.type) + '</div></span>';
