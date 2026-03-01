@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Culebra Map</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin="anonymous"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous"></script>
@@ -209,11 +209,11 @@
     box-shadow: 0 8px 32px rgba(0,0,0,0.18); padding: 0; overflow: hidden; border: none;
   }
   .leaflet-popup-tip { background: var(--c-white); }
-  .leaflet-popup-content { margin: 0; font-family: var(--font-ui); font-size: 13px; line-height: 1.5; min-width: 260px; max-width: 310px; }
+  .leaflet-popup-content { margin: 0; font-family: var(--font-ui); font-size: 13px; line-height: 1.5; min-width: 260px; max-width: 310px; width: max-content; }
   .popup-img { width: 100%; height: 135px; object-fit: cover; display: block; }
   .popup-body { padding: 13px 15px 15px; }
   .popup-title { font-size: 16px; font-weight: 700; color: var(--c-text); margin-bottom: 4px; letter-spacing: -0.01em; }
-  .popup-type-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+  .popup-type-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
   .popup-type-tag {
     font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
     padding: 2px 7px; border-radius: 999px;
@@ -385,8 +385,77 @@
 
   /* ── MOBILE SAFE AREA ── */
   @media (max-width: 767px) {
+    /* ── SEARCH BAR — full width on mobile ── */
+    #topbar {
+      left: 8px; right: 8px; top: 8px;
+      width: auto;
+    }
+    #search-card { height: 48px; }
+    #search-input { font-size: 16px; } /* prevent iOS zoom on focus */
+
+    /* ── WELCOME BANNER — smaller, doesn't overlap search ── */
+    .welcome-badge {
+      top: auto;
+      bottom: calc(72px + env(safe-area-inset-bottom));
+      left: 50%; transform: translateX(-50%);
+      font-size: 11px; padding: 5px 14px;
+      max-width: calc(100vw - 120px);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* ── LEFT STACK — nudge down to clear search ── */
+    #left-stack { top: 68px; left: 8px; gap: 6px; }
+    .stack-btn { width: 40px; height: 40px; font-size: 18px; }
+    #btn-locate { width: 40px; height: 40px; font-size: 18px; }
+
+    /* ── LEGEND DROPDOWN — cap height and scroll on small screens ── */
+    #legend-drop {
+      max-height: calc(100vh - 200px);
+      overflow-y: auto;
+    }
+
+    /* ── POPUPS — full width on mobile, not too tall ── */
+    .leaflet-popup-content-wrapper { border-radius: 16px; }
+    .leaflet-popup-content {
+      min-width: calc(100vw - 80px) !important;
+      max-width: calc(100vw - 60px) !important;
+    }
+    .popup-body { padding: 11px 13px 13px; }
+    .popup-title { font-size: 15px; }
+
+    /* ── POPUP TYPE ROW — wrap on small screens ── */
+    .popup-type-row { flex-wrap: wrap; gap: 4px; }
+
+    /* ── TURN PANEL — taller on mobile ── */
+    #turn-panel { max-height: 60vh; }
+
+    /* ── ZOOM CONTROLS — move up above legend area ── */
+    .leaflet-control-zoom { margin-bottom: 8px !important; }
+    .leaflet-bottom.leaflet-right { bottom: 8px !important; }
+
+    /* ── BUTTONS — hide fullscreen ── */
     #btn-fullscreen { display: none; }
-    .leaflet-control-zoom { bottom: 80px !important; }
+
+    /* ── DIRECTIONS BUTTON — bigger tap target ── */
+    .btn-directions { padding: 13px 0; font-size: 14px; }
+    .btn-share { padding: 11px 0; }
+
+    /* ── SEARCH RESULTS — full usable height ── */
+    #search-results { max-height: 50vh; }
+
+    /* ── ATTRIBUTION — tiny ── */
+    .leaflet-control-attribution { font-size: 9px !important; }
+  }
+
+  /* ── VERY SMALL SCREENS (iPhone SE etc) ── */
+  @media (max-width: 375px) {
+    #topbar { left: 6px; right: 6px; top: 6px; }
+    #left-stack { top: 64px; left: 6px; }
+    .stack-btn, #btn-locate { width: 36px; height: 36px; font-size: 16px; }
+    .leaflet-popup-content {
+      min-width: calc(100vw - 40px) !important;
+      max-width: calc(100vw - 30px) !important;
+    }
   }
 
 
@@ -411,7 +480,7 @@
 </div>
 
 <!-- MAP -->
-<div id="map"></div>
+<div id="map" style="touch-action:pan-x pan-y;"></div>
 
 <!-- FULLSCREEN (alias kept for JS compat) -->
 <button id="btn-fullscreen" title="Toggle fullscreen" onclick="toggleFullscreen()" style="display:none">⛶</button>
