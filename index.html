@@ -448,6 +448,43 @@
   }
   footer a { color: var(--aqua); text-decoration: none; }
 
+  /* ── HERO GUIDE BOX ── */
+  .hero-guide-box {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(0,180,216,0.4);
+    border-radius: 16px;
+    padding: 20px 28px;
+    margin-top: 36px;
+    max-width: 580px;
+    width: 100%;
+    text-align: left;
+  }
+  .guide-badge {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .guide-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 12px;
+  }
+  .guide-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .guide-list li {
+    font-size: 13px;
+    color: rgba(255,255,255,0.82);
+    line-height: 1.4;
+  }
+
   /* ── ANIMATIONS ── */
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(28px); }
@@ -493,9 +530,23 @@
     </div>
   </div>
 
+  <!-- TRAVEL GUIDE PROMO BADGE -->
+  <div class="hero-guide-box" style="animation: fadeUp 0.8s ease 0.35s both;">
+    <div class="guide-badge">🎁 BONUS INCLUDED</div>
+    <div class="guide-title">📋 Culebra Ultimate Travel Guide PDF</div>
+    <ul class="guide-list">
+      <li>✅ Full ferry schedules — all departures, both directions</li>
+      <li>✅ Vehicle guide — golf carts, E-bikes, jeeps, taxis & more</li>
+      <li>✅ Taxi warnings — prices, reliability & what to expect</li>
+      <li>✅ Food & grocery delivery — shopculebra.com</li>
+      <li>✅ Beach rules, snorkeling tips & island etiquette</li>
+      <li>✅ Complete packing list & quick reference numbers</li>
+    </ul>
+  </div>
+
   <div class="hero-cta">
     <a href="https://huntergray6.gumroad.com/l/gukjxc" target="_blank" class="btn-buy">
-      🗺️ Get the Map Now <span class="arrow">→</span>
+      🗺️ Get the Map + Travel Guide <span class="arrow">→</span>
     </a>
     <span class="hero-price">Instant download · <strong>Works offline</strong> · One-time purchase</span>
   </div>
@@ -688,8 +739,8 @@
   <p class="buy-tagline reveal">One download. Every secret. The whole island in your pocket.</p>
 
   <div class="buy-box reveal">
-    <div class="buy-price">$4.99</div>
-    <div class="buy-price-note">One-time purchase · Instant download</div>
+    <div class="buy-price">$19.99</div>
+    <div class="buy-price-note">One-time purchase · Instant download · Two files included</div>
     <ul class="buy-features">
       <li>60+ pinned locations with full details</li>
       <li>Works 100% offline — no signal needed</li>
@@ -697,6 +748,10 @@
       <li>Snorkeling spots, hiking trails & more</li>
       <li>Road condition badges for every location</li>
       <li>Compatible with all phones and browsers</li>
+      <li style="border-top:1px solid rgba(255,255,255,0.1);margin-top:8px;padding-top:8px;color:var(--aqua);font-weight:600;">🎁 BONUS: Culebra Ultimate Travel Guide PDF</li>
+      <li>Full ferry schedules — all departures, both directions</li>
+      <li>Vehicle guide — E-bikes, jeeps, golf carts & taxi warnings</li>
+      <li>Food & grocery delivery, packing list & emergency contacts</li>
     </ul>
     <a href="https://huntergray6.gumroad.com/l/gukjxc" target="_blank" class="btn-buy-lg">
       🗺️ Buy Now — Get Instant Access
